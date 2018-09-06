@@ -9,7 +9,7 @@ Zenaton staff use this repository as a forum to discuss and make technical decis
 3. Make a Pull Request (PR) for your branch.
 4. Rename your file and directory with the number of the PR and push as a new commits.
 5. Post a link to your PR in #general on Slack. @mention teams in the PR description if you want particular attention from them.
-6. Zenanton members discuss your proposal using both inline comments against your RFC document and the general PR comments section.
+6. Zenaton members discuss your proposal using both inline comments against your RFC document and the general PR comments section.
 7. As changes are requested and agreed in comments, make the changes in your RFC and push them as new commits.
 8. Stay active in the discussion and encourage and remind other relevant people to participate. If you start an RFC it’s up to you to push it through the process and engage people.
 9. Once consensus is reached and approvals given using the Github review system, the PR can be merged.
