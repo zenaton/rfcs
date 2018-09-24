@@ -43,7 +43,7 @@ tools we rely on.
 - Larger features SHOULD be broken into smaller chunks and multiple PRs.
 - You MAY use [Feature Toggles](https://www.martinfowler.com/articles/feature-toggles.html)
   when merging parts of larger work.
-- You SHOULD write [good commit messages](https://chris.beams.io/posts/git-commit://chris.beams.io/posts/git-commit/).
+- You SHOULD write [good commit messages](https://chris.beams.io/posts/git-commit/).
 - Authors MUST limit the number of commits that end up in the master branch, by
   either squashing their WIP commits, rebasing their branch on the latest
   version of master, etc.
