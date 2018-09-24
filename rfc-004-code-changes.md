@@ -30,6 +30,8 @@ tools we rely on.
 - PR MUST be merged by the author(s) of the Pull Request.
 - Parts of a review that can be automated MUST be automated (e.g. code
   formatting, tests)
+- PR SHOULD include a screenshot, video, or other visual aids when it helps
+  better understant the impact of the proposed changes.
 - The automated checks MUST be passing for a PR to be merged.
 - PR SHOULD be reviewed before merging. Author(s) of a PR are responsible for
   chasing down reviewers if needed.
