@@ -67,7 +67,7 @@ Execution history:
 14. (Worker)`task4`  is successful. (Engine) This triggers creation of a new branch 8 (`onSuccess(task4)`) and schedule decision of branch 8 and 0 (as `task4`  belongs to this branch). Scheduled branches are sent to Worker.
 15. (Worker) execution of branches 8 and 0 end with a `setOutput` decision. Engine decides to terminate this instance.
 
-![](DecisionExample-2868e598-095d-4d23-93bd-d1a8a3338204.png)
+![](rfc-15/DecisionExample-2868e598-095d-4d23-93bd-d1a8a3338204.png)
 
 # Engine Data  Structure
 
