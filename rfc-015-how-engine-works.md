@@ -46,7 +46,7 @@ Lets's look at this simple example:
     function handle()
     {
         [task1, task2, task3]->execute();
-    		task4->execute();
+    	task4->execute();
     }
 
 Execution history:
@@ -89,15 +89,15 @@ Individual branches are stored with input values in `branches`:
 
     [
       %{
-    		 type: "handle"|"onEvent"|"onStart"|"onSuccess"|"onFailure"|"onTimeout",
-    	   event_name: (optional) <string>,
-    	   event_input: (optional) <jsonified>,
-    		 task_name: (optional) <string>,
-    		 task_input: (optional) <jsonified>,
-    		 task_output: (optional) <jsonified>,
-    		 error_name: (optional) <string>,
-    		 error_input: (optional) <jsonified>,
-    		 output: (optional) <jsonified>,
+    	    type: "handle"|"onEvent"|"onStart"|"onSuccess"|"onFailure"|"onTimeout",
+    	    event_name: (optional) <string>,
+    	    event_input: (optional) <jsonified>,
+            task_name: (optional) <string>,
+    		task_input: (optional) <jsonified>,
+    		task_output: (optional) <jsonified>,
+    		error_name: (optional) <string>,
+    		error_input: (optional) <jsonified>,
+    		output: (optional) <jsonified>,
     	},
       ...
     ]
@@ -127,15 +127,15 @@ Status of all (known) works  are stored in `statuses`
 
     [
       %{
-         branch_key: <integer>
-         position: <string>
-         hash: <string>
-    		 status: "scheduled" | "successful" | (next) "failed"
-    	   completion_index: (optional) <integer>
-         output: (optional) <jsonified>
-    		 (next) error_name: (optional) <string>
-    		 (next) error_input: (optional) <jsonified>
-    	},
+        branch_key: <integer>
+        position: <string>
+        hash: <string>
+        status: "scheduled" | "successful" | (next) "failed"
+        completion_index: (optional) <integer>
+        output: (optional) <jsonified>
+        (next) error_name: (optional) <string>
+        (next) error_input: (optional) <jsonified>
+      },
       ...
     ]
 
@@ -155,7 +155,7 @@ Array of running waiting processes (used only for restoring engine state)
       %{
          hash: <string>
          timestamp: <integer>
-    		 event: (optional) <string>
+         event: (optional) <string>
          (next) type: "wait" | "while"
       }
     ]
@@ -182,7 +182,7 @@ Note : to optimize memory usage (as properties can be quite big, as well as numb
 
     [
       %{key:0, values: p0},
-    	%{key:4, values: p1},
+      %{key:4, values: p1},
       %{key:9, values: p2}
     ]
 
