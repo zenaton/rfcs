@@ -67,7 +67,7 @@ Execution history:
 14. (Worker)`task4`  is successful. (Engine) This triggers creation of a new branch 8 (`onSuccess(task4)`) and schedule decision of branch 8 and 0 (as `task4`  belongs to this branch). Scheduled branches are sent to Worker.
 15. (Worker) execution of branches 8 and 0 end with a `setOutput` decision. Engine decides to terminate this instance.
 
-![](rfc-15/DecisionExample-2868e598-095d-4d23-93bd-d1a8a3338204.png)
+![](../blob/master/rfc-15/DecisionExample-2868e598-095d-4d23-93bd-d1a8a3338204.png?raw=true)
 
 # Engine Data  Structure
 
@@ -176,7 +176,7 @@ Properties are all mutable variables inside workflow implementation. These varia
 - `properties(1)` = properties at end of 1st executed branch (when `index` is 0)
 - `properties(n)` = properties at end of nth executed branch (when `index` is n-1)
 
-![](properties-9061d1a3-0b9e-4883-8fe5-e907b3b0944b.png)
+![](../blob/master/properties-9061d1a3-0b9e-4883-8fe5-e907b3b0944b.png?raw=true)
 
 Note : to optimize memory usage (as properties can be quite big, as well as number of branch executions), we should store execution index and  properties only when properties change :
 
@@ -367,7 +367,7 @@ Current instance state is saved on a table `States` with
 
 # Worker
 
-![](scripts-4f9ceaab-aafa-4175-9e6d-6e95ff4721d6.png)
+![](../blob/master/rfc-15/scripts-4f9ceaab-aafa-4175-9e6d-6e95ff4721d6.png?raw=true)
 
 ## Distributing jobs
 
