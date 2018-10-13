@@ -52,13 +52,8 @@ Lets's look at this simple example (pseudo-code):
 
     function handle()
     {
-<<<<<<< HEAD
         execute(task1, task2, task3);  # these 3 tasks should be executed in parallel
         execute(task4);  # task4 should be executed after completion of all 3 previous tasks       
-=======
-        [task1, task2, task3]->execute();
-    	task4->execute();
->>>>>>> 348c7868065c4b06f4e2987dd0938f93e27d4fb0
     }
 
 Execution history (each step is described by its `index`)
@@ -100,7 +95,6 @@ Programming language of the workflow
 Individual branches are stored with input values in `branches`:
 
     [
-<<<<<<< HEAD
         %{
           type: "handle"|"onEvent"|"onStart"|"onSuccess"|"onFailure"|"onTimeout",
           event_name: (optional) <string>,
@@ -112,19 +106,6 @@ Individual branches are stored with input values in `branches`:
           error_input: (optional) <jsonified>,
           output: (optional) <jsonified>,
         },
-=======
-      %{
-    	    type: "handle"|"onEvent"|"onStart"|"onSuccess"|"onFailure"|"onTimeout",
-    	    event_name: (optional) <string>,
-    	    event_input: (optional) <jsonified>,
-            task_name: (optional) <string>,
-    		task_input: (optional) <jsonified>,
-    		task_output: (optional) <jsonified>,
-    		error_name: (optional) <string>,
-    		error_input: (optional) <jsonified>,
-    		output: (optional) <jsonified>,
-    	},
->>>>>>> 348c7868065c4b06f4e2987dd0938f93e27d4fb0
       ...
     ]
 
@@ -153,7 +134,6 @@ Status of all (known) tasks are stored in `statuses`
 
     [
       %{
-<<<<<<< HEAD
           branch_key: <integer>
           position: <string>
           hash: <string>
@@ -161,17 +141,6 @@ Status of all (known) tasks are stored in `statuses`
           completion_index: (optional) <integer>
           output: (optional) <jsonified>
        },
-=======
-        branch_key: <integer>
-        position: <string>
-        hash: <string>
-        status: "scheduled" | "successful" | (next) "failed"
-        completion_index: (optional) <integer>
-        output: (optional) <jsonified>
-        (next) error_name: (optional) <string>
-        (next) error_input: (optional) <jsonified>
-      },
->>>>>>> 348c7868065c4b06f4e2987dd0938f93e27d4fb0
       ...
     ]
 
@@ -189,16 +158,9 @@ Array of running waiting processes (used only for restoring engine state)
 
     [
       %{
-<<<<<<< HEAD
           hash: <string>
           timestamp: <integer>
           event: (optional) <string>
-=======
-         hash: <string>
-         timestamp: <integer>
-         event: (optional) <string>
-         (next) type: "wait" | "while"
->>>>>>> 348c7868065c4b06f4e2987dd0938f93e27d4fb0
       }
     ]
 
@@ -223,15 +185,9 @@ Properties are all mutable variables inside workflow. These variables can be mod
 Note: to optimize memory usage (as properties can be quite big, as well as number of branch executions), we store execution index and properties only when properties change:
 
     [
-<<<<<<< HEAD
         %{key:0, values: p0},
         %{key:4, values: p1},
         %{key:9, values: p2}
-=======
-      %{key:0, values: p0},
-      %{key:4, values: p1},
-      %{key:9, values: p2}
->>>>>>> 348c7868065c4b06f4e2987dd0938f93e27d4fb0
     ]
 
 such as properties(0) = p0, properties(1) = p0, properties(2) = p0, properties(3) = p0, properties(4) = p1, properties(5) = p1, ...
