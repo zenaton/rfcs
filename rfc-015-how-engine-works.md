@@ -1,5 +1,8 @@
 # Workflow orchestration
 
+![](rfc-015/decision_example.png)
+
+
 # Vocabulary
 
 - Engine: server hosted by Zenaton, orchestrating Decisions and Tasks executions
