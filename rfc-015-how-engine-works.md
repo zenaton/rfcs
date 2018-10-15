@@ -1,8 +1,5 @@
 # Workflow orchestration
 
-![](rfc-015/decision_example.png)
-
-
 # Vocabulary
 
 - Engine: server hosted by Zenaton, orchestrating Decisions and Tasks executions
@@ -77,7 +74,7 @@ Execution history (each step is described by its `index`)
 14. (task) `task4` is completed. Agent tells Engine that triggers creation of a new branch 8 (`onSuccess(task4)`) and schedule its execution as well as branch 0 (as `task4`  belongs to this branch).
 15. (decision) execution of branches 8 and 0 end with a `setOutput` decision. Agent tells Engine that decides to terminate this instance.
 
-![](/rfc-15/DecisionExample-2868e598-095d-4d23-93bd-d1a8a3338204.png)
+![Example of workflow execution](rfc-015/decision_example.png)
 
 # Instance Data  Structure in Engine
 
@@ -183,7 +180,7 @@ Properties are all mutable variables inside workflow. These variables can be mod
 - `properties(1)` = properties at end of 1st executed branch (when `index` is 0)
 - `properties(n)` = properties at end of nth executed branch (when `index` is n-1)
 
-![](../blob/master/properties-9061d1a3-0b9e-4883-8fe5-e907b3b0944b.png?raw=true)
+![Properties management](rfc-015/properties_management.png)
 
 Note: to optimize memory usage (as properties can be quite big, as well as number of branch executions), we store execution index and properties only when properties change:
 
@@ -379,7 +376,7 @@ Current instance state is saved on a table `States` with
 
 # Agent
 
-![](../blob/master/rfc-15/scripts-4f9ceaab-aafa-4175-9e6d-6e95ff4721d6.png?raw=true)
+![Agent organisation](rfc-015/agent.png)
 
 ## Distributing jobs
 
