@@ -2,22 +2,22 @@
 
 ## Summary
 
-Zenaton success should be everyone's concern. This RFC discusses how makes it happen.
+Zenaton success MUST be everyone's concern. This RFC discusses how makes it happen.
 
 ## Problem
 
-No one should think he is not concerned by Zenaton success.
-In particular the tech team should avoid to focus on technical stuff only.
+No one SHOULD think he is not concerned by Zenaton success.
+In particular the tech team SHOULD avoid to focus on technical stuff only.
 
 It's important to understand that - at short term - those tasks will have a bigger impact on Zenaton than eg. adding more features.
 
 ## Proposal
 
-- Everyone should write at least 1 blog post per month - just doing that will allow us to publish 2+ articles per week, which is great for inbound marketing :)
-- Everyone should dedicate 2h/day to help. There are many ways to contribute:
+- Everyone MUST write at least 1 blog post per month - just doing that will allow us to publish 2+ articles per week, which is great for inbound marketing :)
+- Everyone MUST dedicate 2 half-day per week to help. There are many ways to contribute:
     - evangelise friends / Quora / StackOverflow...
-    - support customer
-    - write contents (blog posts, improve documentation...)
-    - help sales (sourcing new customers, nurturing existing lists...)  (we should find an alternative to Pipedrive to be able to synchronise this)
+    - support customer (you MUST have access to Crisp, our current tool)
+    - write contents (blog posts, improve documentation..., you MUST be writer in our Medium channel)
+    - help sales (sourcing new customers, nurturing existing lists...)  (we SHOULD find an alternative to Pipedrive)
 
-    *This work must be included in daily written standup*.
+    *This work MUST be included in daily written standup*.
