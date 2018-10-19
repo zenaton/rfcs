@@ -29,7 +29,7 @@ The `WaitEventWorkflow` will execute `TaskB` instead of `TaskA`.
 
 The same behavior can be observed in the EventWorkflow by dong this in the `launch_event.py` file:
 
-WaitEventWorkflow.where_id(event_id).send_event(event=MyChildEvent())`
+`WaitEventWorkflow.where_id(event_id).send_event(event=MyChildEvent())`
  
 ## Proposal
 
