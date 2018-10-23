@@ -22,7 +22,7 @@ The Nova backoffice has many locations where it can display metrics.
 - Dashboard: The main screen when you go into the backoffice. It is best suited for
 generate purpose metrics.
 - Resource index: The listing screen when you click on a resource name in the left side menu bar.
-It is best suited for resource related metrics that are not important enough to be displayed
+It is best suited for resource related metrics that are trifling enough to be displayed
 on the main dashboard.
 - Resource details: The details screen displayed when you click the eye icon to display a resource's
 details. It is best suited to display metrics related to a specific resource.

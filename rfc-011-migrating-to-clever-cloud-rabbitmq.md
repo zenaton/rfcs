@@ -2,8 +2,8 @@
 
 ## Summary
 
-Today we have our own RabbitMQ hosted on AWS (t2.medium). In the past, the main issues we had was due to RabbitMQ. Actually, the engine was requesting too much the RabbitMQ server and this leads to memory overflow, RabbitMQ server was stucked and we were losing messages. (Very bad for customers, it should never happen anymore).
-Today, we've fixed few things to have a more stable RabbitMQ environment, so it works ok on our medium server. To be more confident as the usage load is going to increase and to focus on Zenaton feature first, we would like to give the queues management to [Clever Cloud](clever-cloud.com) who do it very well (cluster with replicated node).
+Today we have our own RabbitMQ hosted on AWS (t2.medium). In the past, the main issues we had was due to RabbitMQ. Actually, the engine was requesting too much the RabbitMQ server and this leads to memory overflow, RabbitMQ server was stucked and we were losing messages. (Bad for customers, it should never happen anymore).
+Today, we've fixed few things to have a more stable RabbitMQ environment, so it works ok on our medium server. To be more confident as the usage load is going to increase and to focus on Zenaton feature first, we would like to give the queues management to [Clever Cloud](clever-cloud.com) who do it well (cluster with replicated node).
 
 ## Problem
 
@@ -19,5 +19,5 @@ Reminder: As Clever Cloud is a PaaS, we do not have access to the server by SSH.
 
 - The agent is already reconnecting automatically when he loses the connection, so if we restart the engine and change the targeted RabbitMQ url, it should be fine.
 - Migrate all the RabbitMQ administration with a mix command (Users & Password and access rights)
-- Implement a temporary services that will consumed all the incoming messages from the old RabbitMQ and re-inject it in the new one. 
+- Implement a temporary services that will consumed all the incoming messages from the old RabbitMQ and re-inject it in the new one.
 - Change the RabbitMQ url in the engine and restart it.

@@ -5,12 +5,12 @@
 - Engine: server hosted by Zenaton, orchestrating Decisions and Tasks executions
 - Worker: the computer owned by end user on which tasks are executed
 - Agent: the binary provided by Zenaton and installed on Workers by end-user
-- Task: some code (in PHP, node, go...) describing something to be executed by a Worker
-- Workflow: some code (in PHP, node, go...) describing an orchestration of Tasks
+- Task: some code (in PHP, node, go…) describing something to be executed by a Worker
+- Workflow: some code (in PHP, node, go…) describing an orchestration of Tasks
 - Instance: *virtual* instantiation of a Workflow. An Instance is only executed step by step, possibly on different Workers. Its state is maintained within Engine.
 - Decision: the action to decide what to do next, given Workflow code and Instance history
-- Decision Executer: the thread (in PHP, node, go...) launched by an Agent and executing a Decision
-- Task Executer: the thread (in PHP, node, go...) launched by an Agent and executing a Task
+- Decision Executer: the thread (in PHP, node, go…) launched by an Agent and executing a Decision
+- Task Executer: the thread (in PHP, node, go…) launched by an Agent and executing a Task
 
 # Principles
 
@@ -42,7 +42,7 @@ Each time a branch is executed (on a Worker), a `branch execution index` (or jus
 
 Notes:
 - a instance execution is terminated as soon as all known branches have reached end.
-- per instance, branches are indexed by its rank (first created branch is called branch 0, second created branch is called branch 1, etc...) and have properties:
+- per instance, branches are indexed by its rank (first created branch is called branch 0, second created branch is called branch 1, etc…) and have properties:
     - its type: `handle`, `onEvent`, `onStart`,  `onSuccess`, `onFailure`, `onTimeout`
     - a creation index: the value of `index` at first execution of this branch.
 
@@ -53,13 +53,13 @@ Lets's look at this simple example (pseudo-code):
     function handle()
     {
         execute(task1, task2, task3);  # these 3 tasks should be executed in parallel
-        execute(task4);  # task4 should be executed after completion of all 3 previous tasks       
+        execute(task4);  # task4 should be executed after completion of all 3 previous tasks
     }
 
 Execution history (each step is described by its `index`)
 
 1. (decision) branch 0 (`handle`) execution start and ends with decision to schedule `task1` , `task2` and `task3`. Agent tells Engine that schedules execution of `task1` , `task2` and `task3`.
-2. (task) `task2` is the first to starts execution. Agent tells Engine that triggers creation of a new branch 1 (`onStart(task2)`) and schedule its execution. 
+2. (task) `task2` is the first to starts execution. Agent tells Engine that triggers creation of a new branch 1 (`onStart(task2)`) and schedule its execution.
 3. (task) `task1` starts execution. Agent tells Engine that triggers creation of a new branch 2 (`onStart(task1)`) but - as a decision is ongoing - postpone scheduling its execution.
 4. (task) `task3` starts execution. Agent tells Engine that triggers creation of a new branch 3 (`onStart(task3)`) but - as a decision is ongoing - postpone scheduling its execution.
 5. (decision) branch 1 execution ends with no decision. Agent tells Engine that schedule execution of waiting branches 2 and 3.
@@ -106,7 +106,7 @@ Individual branches are stored with input values in `branches`:
           error_input: (optional) <jsonified>,
           output: (optional) <jsonified>,
         },
-      ...
+      …
     ]
 
 Where:
@@ -124,13 +124,13 @@ Where:
 
 `executions` is an array that stores - in chronological order - the keys of branches already executed *and currently being executed*.
 
-    [ 0, 1, 2, 0, 3, 4, ...]
+    [ 0, 1, 2, 0, 3, 4, …]
 
 In this document `index` refers specifically to this array. For a branch `n` we define `start_index` as the index of first appearance of `n` in `executions` array. With the example above, `execution_index_at_start` is `4`  for branch `3`, `1` for branch `1` and `0` for branch `0` (as always).
 
 ## `statuses`
 
-Status of all (known) tasks are stored in `statuses` 
+Status of all (known) tasks are stored in `statuses`
 
     [
       %{
@@ -141,7 +141,7 @@ Status of all (known) tasks are stored in `statuses`
           completion_index: (optional) <integer>
           output: (optional) <jsonified>
        },
-      ...
+      …
     ]
 
 where
@@ -190,7 +190,7 @@ Note: to optimize memory usage (as properties can be quite big, as well as numbe
         %{key:9, values: p2}
     ]
 
-such as properties(0) = p0, properties(1) = p0, properties(2) = p0, properties(3) = p0, properties(4) = p1, properties(5) = p1, ...
+such as properties(0) = p0, properties(1) = p0, properties(2) = p0, properties(3) = p0, properties(4) = p1, properties(5) = p1, …
 
 **Properties when starting a branch**
 
@@ -198,7 +198,7 @@ Properties when starting a branch `b`  are those at the end of the executed bran
 
 **Properties after task completion**
 
-Given a task `task` on a branch `b`  after completion the engine will schedule execution of at least two branches: 
+Given a task `task` on a branch `b`  after completion the engine will schedule execution of at least two branches:
 
 - a new `onSuccess(task)` branch that will start with `properties(index)`
 - the `b` branch itself
@@ -213,11 +213,11 @@ The `buffer` array stores what happens before decision can be actually scheduled
 
     [
     	%{
-            timestamp: ..., 
+            timestamp: …,
             type:"onEvent"|"onStart"|"onFailure"|"onSuccess"|"onTimeout",
-            data: ...
+            data: …
         },
-    	...
+    	…
     ]
 
 Why use a buffer? Examples:
@@ -236,7 +236,7 @@ For those, the `timestamp` value is the engine timestamp when the decision was t
 
 ## Starting a Workflow
 
-`branches` 
+`branches`
 
     []
 
@@ -244,7 +244,7 @@ For those, the `timestamp` value is the engine timestamp when the decision was t
 
     []
 
-`ongoing_index` 
+`ongoing_index`
 
     null
 
@@ -252,11 +252,11 @@ For those, the `timestamp` value is the engine timestamp when the decision was t
 
     []
 
-`properties` 
+`properties`
 
     [ %{key:0, values:<jsonified initial properties>} ]
 
-`buffer` 
+`buffer`
 
     [ %{timestamp: <current>, type: "handle", data: nil} ]
 
@@ -271,7 +271,7 @@ For those, the `timestamp` value is the engine timestamp when the decision was t
         - create entry for this task in `statuses`
             - push `%{branch_key: branch_key, position: position, hash: hash}` into `statuses`
         - add new action `onStart` in `buffer`
-            - push `%{timestamp: ..., type:"onStart, data: ...}` to `buffer` where `timestamp` is the engine timestamp when the current decision was triggered.
+            - push `%{timestamp: …, type:"onStart, data: …}` to `buffer` where `timestamp` is the engine timestamp when the current decision was triggered.
         - if already terminated, add new action `onCompleted` in `buffer`
             - by event, if any, search for first (in time) element in `buffer` matching `event_name` => `byevent_timestamp`
 
@@ -282,7 +282,7 @@ For those, the `timestamp` value is the engine timestamp when the decision was t
                 ```
             - by time, `bytime_timeout = task_timeout` (if < current timestamp)
             - if terminated
-                - push `%{timestamp: ..., type:"onCompleted, data: ...}` to `buffer` according to first occuring `byevent_timestamp` or `bytime_timeout`
+                - push `%{timestamp: …, type:"onCompleted, data: …}` to `buffer` according to first occuring `byevent_timestamp` or `bytime_timeout`
         - if not terminated, start wait process (from time of current decision triggering) and add entry to `waits` array
     - if `update_properties` with data `branch_index`, `branch_properties`
         - update `properties`  array
@@ -317,7 +317,7 @@ For those, the `timestamp` value is the engine timestamp when the decision was t
     - plan executions of new branches:
         - `branch_key = length(branches)`
         - `branch_index = length(executions)`
-        - push `%{type::..., data:...}` to `branches` array
+        - push `%{type::…, data:…}` to `branches` array
         - push `branch_key`  to `executions`
     - if type `onCompleted`, store result and execute corresponding branch:
         - update `statuses` with `completion_index = branch_index` and `output`
@@ -326,26 +326,26 @@ For those, the `timestamp` value is the engine timestamp when the decision was t
 
 ## Trigger Decision
 
-`decision_ongoing = true` 
+`decision_ongoing = true`
 
 Send to Agent the following data:
 
 - `uuid`  <string>
 - `workflow_name`  <string>
 - `programming_language` <string>
-- `properties` [%{properties: <jsonified>, key: <integer>}...]
+- `properties` [%{properties: <jsonified>, key: <integer>}…]
 - `executions` [<integer>]
 - `ongoing_index` <integer>
-- `ongoing_branches`:  [%{branch: %{ <branch> }, key: <integer>}...]
+- `ongoing_branches`:  [%{branch: %{ <branch> }, key: <integer>}…]
 
-    branches with key in `ongoing_executions = Enum.take(executions, ongoing_index - length(executions))`  
+    branches with key in `ongoing_executions = Enum.take(executions, ongoing_index - length(executions))`
     ```
     ongoing_branches = branches
         |> Enum.with_index()
         |> Enum.filter(fn({branch,key})-> Enum.member?(`ongoing_executions`, key) end)
         |> Enum.map(fn({branch, key}) -> %{branch: branch, key: key} end)
     ```
-- `ongoing_statuses`: [%{ <status> }...]
+- `ongoing_statuses`: [%{ <status> }…]
 
     status of works in `ongoing_executions`
     ```
@@ -386,24 +386,24 @@ For each `uuid`, a Agent runs a process where all data related to this decision 
     - for a decision
 
         `{action: "DecisionScheduled", uuid: <uuid>, name: <flow_name> }`
-    
+
     - for a task
 
-        `{action: "TaskScheduled", uuid: <uuid>, name: <task_name>, input: <task_input>, hash:<task_hash>}` 
+        `{action: "TaskScheduled", uuid: <uuid>, name: <task_name>, input: <task_input>, hash:<task_hash>}`
 
     - **(next)** if none
 
         `{action: "None"}`
 
-    Note: `programming_language` is not specified when received as queues are language-specific. 
+    Note: `programming_language` is not specified when received as queues are language-specific.
 
-**Endpoints** 
+**Endpoints**
 
 - `get /decisions/{uuid}/branch`
     - if `(ongoing_index < length(executions))`, then return next branch to execute (in `executions` from `ongoing_index` to end):
-    
+
         `{branch: <branch>, properties: <values>}`
-    
+
         where `<values>` are initial properties of <branch> (`Enum.find(ongoing_branches, &(&1["key"] == ongoing_index))`) .
 
     - if `(ongoing_index >= length(executions))`  then return
@@ -419,7 +419,7 @@ For each `uuid`, a Agent runs a process where all data related to this decision 
     - if `output` is present, Agent will schedule a "setOutput" decision with `branch_key = executions(ongoing_index)`
     - `ongoing_index++`
 
-- `post /decisions/{uuid}/execute` with an array of works as body: `[ %{name: , input: , position: , timeout: , sync: , type: , event: }, ... ]`. Agent response:
+- `post /decisions/{uuid}/execute` with an array of works as body: `[ %{name: , input: , position: , timeout: , sync: , type: , event: }, … ]`. Agent response:
     - For each work
         - if position is unknown in this branch, this is a new work:
             - add a new status in `statuses` list
@@ -470,13 +470,13 @@ Decider launches branch execution based on these data.
         - if `task` is unknown, then Decider decides to schedule this task and continues
         - if `task` is already scheduled but not completed, Decider continues
         - if `task` is completed, `output` is returned and execution continues
-    - if all tasks are completed, return `[output...]` and continue
+    - if all tasks are completed, return `[output…]` and continue
     - or else leaves branch
 - When reaching an `dispatch(task)`
     - if `task` is unknown, then Decider decides to schedule this task and continues
     - if `task` is already scheduled but not completed, Decider continues
     - if `task` is completed, Decider continues
-- 
+-
 
 ## Decision endpoints:
 
@@ -489,7 +489,7 @@ def handle_call(:give_branch, _from, state = %{decision_scheduled: decision_sche
     case Enum.empty?(ongoing_branches) do
         true ->
             # Send CompleteDecision
-            # Return an empty array 
+            # Return an empty array
             {:reply, [], state}
         false ->
             branch_to_execute = List.first(ongoing_branches)

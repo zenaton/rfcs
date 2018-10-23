@@ -1,0 +1,10 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: rsrchboy/proselint
+    steps:
+      - checkout
+      - run:
+          name: Linting RFCs files
+          command: for file in $(ls *.md); do proselint $file; done
