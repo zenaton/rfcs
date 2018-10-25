@@ -33,5 +33,7 @@ The same behavior can be observed in the EventWorkflow by dong this in the `laun
  
 ## Proposal
 
-First, I was thinking something was wrong in the implementation of the Wait class, where the event type is checked, but this part seems OK. Furthermore it seems that the bug is also present on the plain EventWorkflow, which does not involve the Wait Task.
-I have a few leads on what might cause the problem but I am not sure yet. Let's discuss it together. I will also update this RFC if I find a real lead of this behavior's cause.
+As exposed by Louis and Gilles in the comments of the attached PR, updates has to be done on the core, engine and clients sides. This includes, but is not limited to:
+-Client librairies should send classes, not just Event class name as string. The `sendEvent` function of the `client` should send the whole inheritance structure of the event class, in order to recognize if the event class is a child of the awaited event class.
+-The Agent and Engine have to handle string, as well as arrays of string (because an event class can inherit from several classes).
+
