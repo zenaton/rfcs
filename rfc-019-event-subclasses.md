@@ -35,7 +35,76 @@ The same behavior can be observed in the EventWorkflow by dong this in the `laun
 
 Updates has to be done on the engine, agent and clients sides. This includes, but is not limited to:
 
--Client librairies should send classes, not just Event class name as string. The `sendEvent` function of the `client` should send the whole inheritance structure of the event class, in order to recognize if the event class is a child of the awaited event class.
+-Client librairies should send classes, not just Event class name as string.
+
+Example: 
+```php
+<?php
+
+use Zenaton\Interfaces\EventInterface;
+use Zenaton\Interfaces\WorkflowInterface;
+use Zenaton\Tasks\Wait;
+use Zenaton\Traits\Zenatonable;
+
+class OfferAnswered implements EventInterface
+{
+}
+
+class OfferAccepted extends OfferAnswered
+{
+}
+
+class OfferDeclined extends OfferAnswered 
+{
+}
+
+class WaitEventWorkflow implements WorkflowInterface
+{
+    use Zenatonable;
+
+    protected $id;
+
+    public function __construct($id)
+    {
+        $this->id = $id;
+    }
+
+    public function handle()
+    {
+        $event = (new Wait(OfferAnswered::class))->execute();
+
+        if ($event instanceof  OfferAccepted) {
+            (new TaskA())->execute();
+        } else {
+            (new TaskB())->execute();
+        }
+    }
+
+    public function getId()
+    {
+        return $this->id;
+    }
+}
+```
+
+-The `sendEvent` function of the `client` should send the whole inheritance structure of the event class, in order to recognize if the event class is a child of the awaited event class.
+
+Example:
+```php
+# Mock the event you need to send
+$event = new OfferAccepted();
+# Used in many OOP languages to get infos on class
+$class = new ReflectionClass($event);
+
+# First add the child event
+$matchEvents[] = get_class($event);
+
+while ($parent = $class->getParentClass()) {
+    $matchEvents[] = $parent->getName();
+    $class = $parent;
+```
+
+`$matchEvents` will be a list of classname. The agent need to give the instructions and the engine need to be ready to receive those events to terminate a wait and send back this information to libraries when received an event.
 
 -The Agent and Engine have to handle string, as well as arrays of string (because an event class can inherit from several classes).
 
