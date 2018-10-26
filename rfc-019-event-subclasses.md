@@ -34,6 +34,8 @@ The same behavior can be observed in the EventWorkflow by dong this in the `laun
 ## Proposal
 
 Updates has to be done on the engine, agent and clients sides. This includes, but is not limited to:
+
 -Client librairies should send classes, not just Event class name as string. The `sendEvent` function of the `client` should send the whole inheritance structure of the event class, in order to recognize if the event class is a child of the awaited event class.
+
 -The Agent and Engine have to handle string, as well as arrays of string (because an event class can inherit from several classes).
 
