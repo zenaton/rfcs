@@ -35,7 +35,7 @@ The same behavior can be observed in the EventWorkflow by dong this in the `laun
 
 Updates has to be done on the engine, agent and clients sides. This includes, but is not limited to:
 
--Client librairies should send classes, not just Event class name as string.
+- Client librairies should send classes, not just Event class name as string.
 
 Example: 
 ```php
@@ -87,7 +87,7 @@ class WaitEventWorkflow implements WorkflowInterface
 }
 ```
 
--The `sendEvent` function of the `client` should send the whole inheritance structure of the event class, in order to recognize if the event class is a child of the awaited event class.
+- The `sendEvent` function of the `client` should send the whole inheritance structure of the event class, in order to recognize if the event class is a child of the awaited event class.
 
 Example:
 ```php
@@ -106,5 +106,5 @@ while ($parent = $class->getParentClass()) {
 
 `$matchEvents` will be a list of classname. The agent need to give the instructions and the engine need to be ready to receive those events to terminate a wait and send back this information to libraries when received an event.
 
--The Agent and Engine have to handle string, as well as arrays of string (because an event class can inherit from several classes).
+- The Agent and Engine have to handle string, as well as arrays of string (because an event class can inherit from several classes).
 
