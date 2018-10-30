@@ -95,12 +95,14 @@ func NewEventWorkflow(id string) *EventWorkflow {
 }
 
 func (e *EventWorkflow) Handle() (interface{}, error) {
-	tasks.A.New().Execute()
+	zenaton.Execute(tasks.NewTaskA())
+
 	if e.State {
-		tasks.B.New().Execute()
+		zenaton.Execute(tasks.NewTaskB())
 	} else {
-		tasks.C.New().Execute()
+		zenaton.Execute(tasks.NewTaskC())
 	}
+
 	return nil, nil
 }
 
@@ -128,7 +130,7 @@ func main() {
 ```
 
 Here's how it addresses my points:
-1. Here the user calles there own constructor function (`NewEventWorkflow()`) directly, so they get to maintain type safety! It's slightly more verbose, but I think the extra type safty is a big win.
+1. Here the user calls their own constructor function (`NewEventWorkflow()`) directly, so they get to maintain type safety! It's slightly more verbose, but I think the extra type safty is a big win.
 
 2. Here you get to make your custom type be the actual `EventWorkflow`.
 
