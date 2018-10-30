@@ -50,7 +50,7 @@ func (e *Event) ID() string {
 ```
 
 And this is how you use that workflow (from `event/main.go`):
-```
+```go
 func main() {
 
 	workflows.EventWorkflow.New("testID").Dispatch()
@@ -76,7 +76,7 @@ Here are my problems:
 ## Proposal
 
 I propose to make the definition of a workflow look like this:
-```
+```go
 const EventWorkflowName = "EventWorkflow"
 
 func init() {
@@ -118,7 +118,7 @@ func (e *EventWorkflow) ID() string {
 ```
 
 And dispatching a workflow and sending an event would look like this:
-```
+```go
 func main() {
 
 	zenaton.Dispatch(workflows.NewEventWorkflow("test id"))
