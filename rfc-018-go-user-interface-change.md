@@ -63,7 +63,7 @@ func main() {
 
 Here are my problems:
 
-1. There are a lot of problems with the Init function, but I will focus on one main one and add more if there is sufficient pushback on this point. When you call `workflows.EventWorkflow.New(id)` the id is then passed to the Init function. Here we have compromised on type safety. If the type that is passed into `EventWorkflow.New()` doesn't match the type defined in the `Init()` function, there will be a runtime panic. Ideally you would able to utilize go's static typing to catch type issues at compile time.
+1. There are a lot of problems with the Init function, but I will focus on one main one and add more if there is sufficient pushback on this point. When you call `workflows.EventWorkflow.New(id)` the id is then passed to the Init function. Here we have compromised on type safety. If the type that is passed into `EventWorkflow.New()` doesn't match the type defined in the `Init()` function, there will be a runtime panic. Ideally you would be able to utilize go's static typing to catch type issues at compile time.
 
 2. When you define your type (`type Event struct {…}`) with a handle method, that type is not the actual workflow. So you have to have two different names `EventWorkflow` which is the workflow Definition, and `Event` which is the type that is used as the basis for the workflow Definition. Ideally, you would just have something called `EventWorkflow`. (note: In javascript you don't have this issue, as you can just pass an anonomous object into the workflow constructer. But in go you need to have a named type if you want to define methods.)
 
