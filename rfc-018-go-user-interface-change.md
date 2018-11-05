@@ -125,7 +125,7 @@ func main() {
 
 	time.Sleep(4 * time.Second)
 
-	workflow.WhereID(workflows.EventWorkflowName, "test id").Send("MyEvent", nil)
+	workflow.For(workflows.EventWorkflowName).WhereID("test id").Send("MyEvent", nil)
 }
 ```
 
