@@ -47,11 +47,12 @@ Notes:
 - Decisions are NOT included in activity time calculation
 - Unused Agent do not cost
 - Developer costs should stay tiny
+- Unsuccessful task do not cost
 - the limit of tasks/second is mainly here to avoid the flooding of the infrastructure when launching tasks or workflows.
 - customers with few large tasks (airflow use cases) will pay as a lot of smaller tasks (if similar execution time).
 - min. amount is here to avoid having customers switching back and forth to free plan, and also to pay for long-running workflows.
 
-*As a teaser, we could add a 30$ credit to each new account, to taste monitoring and alerts features :)*
+*As a teaser, we could add a 10$ credit to each new account, to taste monitoring and alerts features :)*
 
 ## Conclusions
 With this proposal, there is no production mode :) Everyone is in production, even developers.
