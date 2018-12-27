@@ -15,38 +15,43 @@ except with Zenaton's env name, but we can not rely on them.
 ### Pricing 
 
 #### Free
-- max 100 tasks/s, 100k tasks /month
-- 3 environments
+- max 100k tasks /month
+- max 100 tasks /second
+- max 3 environments
 - Error Handling
-- 1 week retention data
 
-#### 0.130$ / hour (only during execution)
-- max 1000 tasks/s, 10M tasks /month
-- 30 environments
+#### 0.130$ / hour (only during execution, min. 10$/month)
+- max 10M tasks /month
+- max 1000 tasks /second
+- max 30 environments
 - Alerts & Error Handling
-- Tasks, Workflow and Infrastructure Monitoring
-- Workflow Orchestration
+- Monitoring
 - 90 days Retention Data
+- Email/Slack support
 
 #### Contact us
 - Dedicated Infrastructure
+- Unlimited environments
 - 1 Year Retention Data
 - Developer Guidance & Support
+- Phone support
 - 99.99% SLA
 
 ### Explanation
 
-the proposed pricing is based on the cumulated duration of task managed by the Agent, so if Agent manage some time execution 30% of the time, the cost for the corresponding agent will be: 0.3 (activity ratio) * 0.130$ * 24h * 31 (for a month with 31 days) = 29$
+the proposed pricing is based on the cumulated duration of tasks managed by the Agent, so if Agent manage some time execution 30% of the time, the cost for the corresponding agent will be: 0.3 (activity ratio) * 0.130$ * 24h * 31 (for a month with 31 days) = 29$
 
 Notes: 
-- What you pay is not sensitive to the # of agents: if you have 2 agents, this can impact the price (theoretically up to x2) but only if you need it, if 1 agent would be enough for your workload then the price will stay the same
-- What you pay is not sensitive to the maximal # of parallel executions you authorize : if you have a setting of 5, this can impact the price (theoretically up to x5), but only if you really need them.
-- Decisions are included in activity time calculation
-- If you forget unused agent, then you do not pay for them :)
-- Developer costs are based on usage :)
-- the limit of tasks/second is mainly here to avoid the flooding of the infrastructure when launching tasks/workflows.
+- What you pay is capped by your infrastructure: eg. with two workers, you'll pay max of 2*31*24*.130 = $193 (probably much less). If you allow N executions in parallel, this theoretical cap is N times bigger. 
+- If you parallelize your tasks by having more workers, or more tasks per worker, your tasks will be terminated sooner, but you won't pay more. Idem, you can have a large worker or many small workers - this should not impact the invoice a lot.
+- Decisions are NOT included in activity time calculation
+- Unused Agent do not cost
+- Developer costs should stay tiny
+- the limit of tasks/second is mainly here to avoid the flooding of the infrastructure when launching tasks or workflows.
+- customers with few large tasks (airflow use cases) will pay as a lot of smaller tasks (if similar execution time).
+- min. amount is here to avoid having customers switching back and forth to free plan, and also to pay for long-running workflows.
 
-*As a teaser, we could add a credit 30$ to new account, to let them use all features :)*
+*As a teaser, we could add a 30$ credit to each new account, to taste monitoring and alerts features :)*
 
 ## Conclusions
-With this proposal, there is no production mode :) You pay or you don't pay. If you pay, then you pay also dor your development activity, but normally very few. 
+With this proposal, there is no production mode :) Everyone is in production, even developers.
