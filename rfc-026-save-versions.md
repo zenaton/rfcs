@@ -70,6 +70,32 @@ On the NodeJS SDK:
 
 * Switch code path depending on the `code-path-version` to handle both synchronous and asynchronous workflows/tasks. If no `code-path-version` is given, assume that it's an old workflow started with the old synchronous code path.
 
+## Retrocompatibility
+
+### Engine and Elixir part of the Agent
+
+Engine and Elixir part of the Agent can just ignore the absence of the versions. Engine won't save them and forward them to the Workers. Agent won't send them when it starts a workflow, or forward them to the slave processes.
+
+Absence of the version fields just denotes old workflows that can live their life without them, or workflows started by languages that does not have multiple code paths for the moment and does not need this policy.
+
+### Agent various languages code and SDKs
+
+Right now this change is necessary only for the NodeJS SDK and Javascript part of the Agent, which are going through a major overhaul. Implementing it in other SDKs can wait.
+
+The new Javascript asynchronous stack (Agent and SDK) cannot and musn't be released until what's being described in this rfc has been deployed in production.
+
+Use of the new asynchronous NodeJS SDK will need to be made in conjunction with the new Agent as well. This necessity will be enforced by a strong _breaking changes_ communication on release, disclaiming that the use of this novelty dictates that all deployed Agents must be updated, and all Javascript boot files must use the newly published Zenaton NodeJS SDK.
+
+The _minimal agent version_ policy discussed in rfc [#24](https://github.com/zenaton/rfcs/pull/24) will also prevent a user to download the new asynchronous NodeJS SDK, and use it with an old synchronous version of the agent.
+
+The new Javascript stack will behave as follows:
+
+* All new workflows/tasks using the new asynchronous stack must be started with all the version fields associated to them.
+
+* If a Javascript slave started by the Agent does not receive the version fields, it will assume the job to execute was started on the old synchronous stack, and will behave accordingly.
+
+* If a Javascript slave started by the Agent does receive the version fields, it will check the `code-path-version` field to know on which stack the job was started (logically it will always be on the new asynchronous stack), and will behave accordingly. To be future proof, if the `code-path-version` is unknown, the Agent should throw an error inviting the user to perform an update.
+
 ## Additional thoughts
 
 It would be nice to update the monitoring to display the initial SDK and Agent versions (possibly in *debug* mode), since in the upcoming update we already display `programming_language`.
