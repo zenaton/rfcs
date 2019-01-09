@@ -175,3 +175,36 @@ function done(err, result) {
     /* ... */
 }
 ```
+
+## Additional thoughts
+
+While we maintain the possibility to use `done()`, users will need to have their tasks always return a promise, even if they perform no asynchronous operation.
+
+```javascript
+// Like that...
+Task("TaskSync", async function () { // <- Note the 'async' which forces a promise
+    return 42;
+});
+
+// Or like that...
+Task("TaskSync", function () {
+    return Promise.resolve(42);
+});
+```
+
+In the next major versions of the Agent and NodeJS SDK that will follow the asynchronous one (or possibly later) it would be interesting to remove deprecation and totally forbid usage of the `done()` callback, throwing when it is called.
+
+This will allow users to write synchronous tasks, which is impossible as long as we maintain the `done()` callback, because tasks not returning a promise are expected to call it to mark completion.
+
+```javascript
+// No promise returned, no 'async' keyword
+Task("TaskSync", function () {
+    return 42;
+});
+```
+
+To better understand, you have to remember that the new asynchronous NodeJS stack always executes tasks handles in an asynchronous context anyway.
+
+```javascript
+await task.handle();
+```
