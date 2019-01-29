@@ -15,31 +15,35 @@ except with Zenaton's env name, but we can not rely on them.
 ### Pricing 
 
 #### Free
-- max 100k tasks /month
-- max 100 tasks /second
+- max 10k tasks /month
+- max 10 tasks /second
 - max 3 environments
 - Error Handling
+- Alerting (30 days preview)
+- Monitoring (30 days preview)
+- 7 days retention data
 
 #### 0.130$ / hour (only during execution, min. 10$/month)
-- max 10M tasks /month
+- max 1M tasks /month
 - max 1000 tasks /second
 - max 30 environments
-- Alerts & Error Handling
+- Error Handling
+- Alerting
 - Monitoring
-- 90 days Retention Data
+- 30 days retention Data
 - Email/Slack support
 
 #### Contact us
 - Dedicated Infrastructure
 - Unlimited environments
-- 1 Year Retention Data
+- Extended retention Data
 - Developer Guidance & Support
 - Phone support
 - 99.99% SLA
 
 ### Explanation
 
-the proposed pricing is based on the cumulated duration of tasks managed by the Agent, so if Agent manage some time execution 30% of the time, the cost for the corresponding agent will be: 0.3 (activity ratio) * 0.130$ * 24h * 31 (for a month with 31 days) = 29$
+the proposed pricing is based on the cumulated duration of tasks managed by the Agent, so if Agent manage some time execution 30% of the time, the cost for the corresponding agent will be: 0.3 (activity ratio) * 0.130$ * 24h * 31days = 29$
 
 Notes: 
 - What you pay is capped by your infrastructure: eg. with two workers, you'll pay max of 2*31*24*.130 = $193 (probably much less). If you allow N executions in parallel, this theoretical cap is N times bigger. 
