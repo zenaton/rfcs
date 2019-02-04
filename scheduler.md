@@ -13,6 +13,7 @@ to have a clear overview of what is scheduled.
 
 - Java: http://www.quartz-scheduler.org
 - Laravel: https://laravel.com/docs/master/scheduling
+- Node: https://github.com/agenda/agenda
 - ...
 
 ## Proposal
