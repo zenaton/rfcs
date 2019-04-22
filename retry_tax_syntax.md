@@ -81,8 +81,10 @@ When a job (task or decision) is automatically retried, its status stay one of
 - scheduled 
 - processing
 - failed or completed
-(timed-out is an info related to processing, not a status)
-But we will add specific info related to retry such as
+
+(timed-out is not a status but an info related to processing)
+
+We will add specific info related to retry such as
 - previous_attempt_id (undefined for the first time)
 - current_attempt_nb (0 for the first time)
 
