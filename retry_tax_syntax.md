@@ -88,3 +88,6 @@ We will add specific info related to retry such as
 - previous_attempt_id (undefined for the first time)
 - current_attempt_nb (0 for the first time)
 
+It means also that a job is not considered as failed until its retry policy has expired. 
+
+Nevertheless a nice feature would be to be able to manually retry the job when it's in "waiting to retry" mode (which should be considered as a warning - like timeout)
