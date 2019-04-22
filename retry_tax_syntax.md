@@ -74,6 +74,8 @@ As example, we can implement a simple [Exponential Backoff](https://dzone.com/ar
 
 Due to its simplicity, I propose to use a `onFailureRetryDelay(n)` method. And to provide simple example of uses.
 
+WARNING: if an exception occurs within the `onFailureRetryDelay` method, it should be identified as so a generate an exception to the retry procedure.
+
 ## Comments
 When a job (task or decision) is automatically retried, its status stay one of
 - scheduled 
