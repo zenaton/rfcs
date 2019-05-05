@@ -15,9 +15,7 @@ Which syntax is proposed to users for defining recurrent tasks/workflows ?
 
 ## Discussion
 
-### Prealable
-A solution to manage a scheduler is to set everything in a UI. (like easycron.com) - but the philosophy of Zenaton is to provide everything by code.
-
+### Preamble
 A previous version of this RFC proposed a *static* version of a scheduler - ie. something like [Laravel scheduler](https://laravel.com/docs/master/scheduling). But the discussion converged towards an approach where task/workflows are scheduled *dynamically/programmaticaly*.
 
 For such a choice, the state of scheduling is not maintained anymore within a well-identified file. So we must provide a clear syntax to schedule tasks/workflows but also to update/cancel a scheduling.
@@ -56,12 +54,11 @@ this `id` serving a reference, *it should be unique* (at least per task or workf
 
 A clean implementation implies that the `id` is provided when dispatching in order to be able to assess the success or not. In case of microservices, the `id` can not be read from class implementation and MUST be provided at dispatch.  
 ### Options
-Today, no option are provided, but when looking to similar service, we see that adding options to dispatching is inevitable, eg.:
-- `skippable` to tell if the task can be skipped
-- `schedule_to_finished_timeout` 
+Today, no option are provided, but when looking to similar service, we see that adding options to dispatching is inevitable:
+- eg. `schedule_to_finished_timeout` 
 - `child policy` cf. https://docs.aws.amazon.com/amazonswf/latest/developerguide/swf-dev-adv-child-workflows.html
 
-Some of those options make sense even before the instruction reachs an Agent, this implis we MUST provide them at dispatch. 
+Some of those options make sense even before the instruction reachs an Agent, this implies we should provide them at dispatch. 
 
 ### Syntax Constraints
 
@@ -71,7 +68,7 @@ Some of those options make sense even before the instruction reachs an Agent, th
     * class name
     * arbitrary number of arguments
     * options such as `id`, or `skippable` 
-- should return an arbitrary value (as result in a worklow)
+- as we want to return an arbitrary value - we can not use method chaining without having a special closing method.
 
 
 `Dispatch` syntax constraints:
@@ -81,7 +78,8 @@ Some of those options make sense even before the instruction reachs an Agent, th
     * arbitrary number of arguments
     * options such as `id`, or `timeout`
 - should be able do set delay
-- should be able to set scheduling
+- should be able to set scheduling (recurrent execution)
+- if we want to return a useful value - such as a object - we can not use method chaining without having a special closing method.
 
 ## Proposal
 This proposal is a target: we may need intermediate steps if it's to much to do at once.
@@ -93,67 +91,87 @@ The Agent in client mode should be replaced by (or proposed with) an API (eg. at
 
 This implies to have an always on and scalable API - I would tend toward a serverless implementation. 
 
-### Proposed Syntax For Wait
+### Syntax For Execute
 
-Inspired by PY proposed syntax for Wait (except that we suppose to be able to interpret a string)
+Inspired by PY proposed syntax for Wait  
+`{$name}::with($args...)->getReturn();`  
+OR equivalent for microservices  
+`Task::name($name)->with($args...)->getReturn();`  
 
-`Wait::forever();`  // should be avoided  
-`Wait::for('3 hours');`  
-`Wait::until('Monday')`  
-`Wait::event(OrderPaidEvent::class)->forever();`  // should be avoided  
-`Wait::event(OrderPaidEvent::class)->for('3 hours');`  
-`Wait::event(OrderPaidEvent::class)->until('Friday');`  
+Example:  
+`SendWelcomeEmail::with($user, $from)->getReturn();`  
+OR equivalent for microservices  
+`Task::name(SendWelcomeEmail::class)->with(user, $from)->getReturn();`  
 
-Note that a wait instruction do not have / need `id` or `$options`
+By using a final `getReturn` method, we are free to use chaining methods to define more options :   
+`SendWelcomeEmail::with($user, $from)->id($user->id)->getReturn();`
 
-### Proposed Syntax For Execute
+### Syntax For Wait
+*I'm not sure about the `get` method, suggestion welcome*
 
-Inspired by PY proposed syntax for Wait.
+Wait for a duration  
+`Wait::for()->...->get();`
 
-`Execute::task($name, $args, $options);`  
+Wait for a datetime  
+`Wait::until()->...->get()`
 
-Example: 
+Wait for an event  
+`Wait::event($eventName)->getEvent();`
 
-`Execute::task('SendWelcomeEmail, $user);`
+Wait for an event, with a maximal duration  
+`Wait::event($eventName)->for()->...->getEvent();`  
 
-`Execute::task('SendWelcomeEmail, $user, ['id' => $user->id, 'skippable' => true]);` ($args can be an array OR a unique value)
+Wait for an event, up to a datetime
+`Wait::event($eventName)->until()->...->getEvent();`  
 
+### Syntax For Recurrent Scheduling of a task / workflow
+ 
+I propose a unique syntax for dispatching a task/ workflow, a delayed task / workflow or a recurrent task / workflow. To handle all those cases, we use the `schedule` word:
 
-### Proposed Syntax For dispatch
+`{$name}::with($args)->schedule();`  
+OR equivalent for microservices  
+`Task::name($name)->with($args...)->schedule();`
 
-We propose a unique syntax for dispatching a task/ workflow, a delayed task / workflow or a recurrent task / workflow. To handle all those cases, we use the `schedule` word:
+Derivatives:
+`{$name}::with($args)->delay(.)->schedule();`  
+`{$name}::with($args)->cron('* * * * *')->schedule();`  
+`{$name}::with($args)->forever()->schedule();`  
 
-`Schedule::task($name, $args, $options)->now();`  
-`Schedule::task($name, $args, $options)->delay('30 minutes);`  
-`Schedule::task($name, $args, $options)->cron('* * * * *');`
-`Schedule::task($name, $args, $options)->forever();`
+same syntax for `Workflow::name(...`  
 
-same syntax for `Schedule::workflow(...`  
+Examples:  
+`SendWeeklyReport::with($user)->cron('* * * * *')->schedule();`  
+OR equivalent for microservices  
+`Task::name('SendWeeklyReport')->with($user)->cron('* * * * *')->schedule();`  
 
-Example:
+Important: the `schedule`method returns a `Scheduled` object
 
-`Schedule::task('SendWelcomeEmail, $user)->delay('30 minutes);`
-
-### Schedule object
+### Scheduled object
 -----
 
-`Schedule::task` and `Schedule::workflow` returns an Schedule instance containing all  info  relative to this scheduled task/workflow
+** This part needs to be matured **
 
-while `Execute::task` return the (future) value of the task. The underlying `Schedule` object must be requested, through
-`Schedule::whereTask('SendMail')->whereId($id)->find();` 
+`->schedule()` returns an Scheduled instance containing all info relative to the scheduled task/workflow:
 
+- task or workflow name
+- arguments
+- id 
+- time settings (immediate, delayed, recurrent) and details
+- datetime of scheduling
+- history details (*format to define, it should include all retries* - *for a recurrent scheduling, provide details of each iteration*)
 
-## Additional Possible Features
+Note: 
+- as `->getReturn()` returns the (future) value of a task, if needed the underlying `Scheduled` object must be requested, through
+`Scheduled::whereTask($name)->whereId($id)->find();`
+- cancelling a task / workflow schedule can be done through : `Scheduled::whereTask($name)->whereId($id)->cancel();` or `Scheduled::whereWorkflow($name)->whereId($id)->cancel();` - only scheduling of delayed (not yet in queue) and recurring task/workflow can be canceled
+- we could imagine later that `Scheduled::whereType('recurrent)->get();` will provide a view of all recurrent tasks / workflows
 
-### Local Scheduling
+Warning: there is an ambiguity in vocabulary here (schedule vs execution history)
 
-Ability to define a local scheduler for current agent (it may be directly processed by the agent itself)
+## Short Term
 
-This is the opposite of https://laravel.com/docs/5.8/scheduling#running-tasks-on-one-server
+To avoid to make too much changes, a first implementation of recurrent executions could be:
 
-We may use:
-````php
-->onAgent();            | Run on this agent                  |
-->onAgent('foobar');    | Run on the agent with name 'foobar'|
-````
+`(new $name($args...)->cron('* * * * *')->schedule();`
 
+With a graphical dashboard of all recurrent scheduling, where the user can manually cancel a reccurent scheduling
