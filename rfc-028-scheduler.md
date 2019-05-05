@@ -172,6 +172,6 @@ Warning: there is an ambiguity in vocabulary here (schedule vs execution history
 
 To avoid to make too much changes, a first implementation of recurrent executions could be:
 
-`(new $name($args...)->cron('* * * * *')->schedule();`
+`(new $name($args...))->cron('* * * * *')->schedule();`
 
-With a graphical dashboard of all recurrent scheduling, where the user can manually cancel a reccurent scheduling
+With a graphical dashboard of all recurrent scheduling, where the user can manually cancel a recurrent scheduling
