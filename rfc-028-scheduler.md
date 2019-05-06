@@ -132,7 +132,7 @@ I propose a unique syntax for dispatching a task/ workflow, a delayed task / wor
 OR equivalent for microservices  
 `Task::name($name)->with($args...)->schedule();`
 
-Derivatives:
+Derivatives:  
 `{$name}::with($args)->delay(.)->schedule();`  
 `{$name}::with($args)->cron('* * * * *')->schedule();`  
 `{$name}::with($args)->forever()->schedule();`  
