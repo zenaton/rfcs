@@ -156,26 +156,6 @@ OR equivalent for microservices
 
 Important: when the agent API will be available, the result of `schedule` method could be a `Scheduled` object
 
-### Options Precedence
-It can be useful (for backward compatibility or for more elegant syntax) to be able to define options inside task or workflow.
-
-The following rules will apply to determinate value of an option or `id` at scheduling:
-- the value provided at scheduling (if any) is used
-- if none and task/workflow implementation is known, then value provided in task/workflow (if any) is used
-- if none, then no value is used (default being managed by server)
-
-Note that some options (such as maxProcessingTime) will be used by the Agent. For them also the value provided in task/workflow (if any) is used if no value was provided at scheduling => The Agent must not confond default value provided by server with value provided at scheduling (especially if task implementation in unknown at scheduling).
-
-For sake of simplicity (user point of view - not ours !), I suggest that all options can be define at scheduling AND within task or workflow with a common syntax.
-
-Example:  
-`SendWelcomeEmail::with($user)->options(['maxProcessingTime' => 300])->schedule();`  
-or  
-`public function getMaxProcessingTime() { return 300; }`
-
-Note: I hesitate with `SendWelcomeEmail::with($user)->maxProcessingTime(300)->schedule();`  
-
-
 ### Scheduled object
 -----
 
@@ -199,6 +179,25 @@ Warning: there is an ambiguity in the chosen vocabulary:
 - 'scheduled' points to to the user intention (eg. the email to be sent in 30 minutes)
 - while internally 'scheduled' means "sent to queues for processing")
 It can be very misleading in our code.
+
+### Options Precedence
+It can be useful (for backward compatibility or for more elegant syntax) to be able to define options inside task or workflow.
+
+The following rules will apply to determinate value of an option or `id` at scheduling:
+- the value provided at scheduling (if any) is used
+- if none and task/workflow implementation is known, then value provided in task/workflow (if any) is used
+- if none, then no value is used (default being managed by server)
+
+Note that some options (such as maxProcessingTime) will be used by the Agent. For them also the value provided in task/workflow (if any) is used if no value was provided at scheduling => The Agent must not confond default value provided by server with value provided at scheduling (especially if task implementation in unknown at scheduling).
+
+For sake of simplicity (user point of view - not ours !), I suggest that all options can be define at scheduling AND within task or workflow with a common syntax.
+
+Example:  
+`SendWelcomeEmail::with($user)->options(['maxProcessingTime' => 300])->schedule();`  
+or  
+`public function getMaxProcessingTime() { return 300; }`
+
+Note: I hesitate with `SendWelcomeEmail::with($user)->maxProcessingTime(300)->schedule();`  
 
 ## Short Term
 
