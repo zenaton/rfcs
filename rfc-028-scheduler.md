@@ -1,4 +1,4 @@
-# Zenaton Scheduler
+# Zenaton Scheduling Syntax
 
 ## Problem
 
@@ -172,6 +172,9 @@ Example:
 `Task::name('SendWeeklyReport')->with($user)->options(['maxProcessingTime' => 300])->schedule();`  
 or  
 `public function getMaxProcessingTime() { return 300; }`
+
+Note: I hesitate with `Task::name('SendWeeklyReport')->with($user)->maxProcessingTime(300)->schedule();`  
+
 
 ### Scheduled object
 -----
