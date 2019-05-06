@@ -154,7 +154,7 @@ Examples:
 OR equivalent for microservices 
 `Task::name('SendWeeklyReport')->with($user)->repeat()->cron('* * * * *')->schedule();`  
 
-Important: when the agent API will be available, the `schedule`method could a `Scheduled` object
+Important: when the agent API will be available, the result of `schedule` method could be a `Scheduled` object
 
 ### Options Precedence
 It can be useful (for backward compatibility or for more elegant syntax) to be able to define options inside task or workflow.
