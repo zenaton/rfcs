@@ -144,7 +144,7 @@ Derivatives:
 
 Same syntax for `Workflow::name(...`  
 
-Examples: 
+Examples:  
 `SendWelcomeEmail::with($user)->schedule();`  
 `SendWelcomeEmail::with($user)->delay()->for()->hours(2)->schedule();`  
 `SendWelcomeEmail::with($user)->delay()->until()->monday()->at('8:00')->schedule();`  
@@ -155,6 +155,23 @@ OR equivalent for microservices
 `Task::name('SendWeeklyReport')->with($user)->repeat()->cron('* * * * *')->schedule();`  
 
 Important: when the agent API will be available, the `schedule`method could a `Scheduled` object
+
+### Options Precedence
+It can be useful (for backward compatibility or for more elegant syntax) to be able to define options inside task or workflow.
+
+The following rules will apply to determinate value of an option or `id` at scheduling:
+- the value provided at scheduling (if any) is used
+- if none and task/workflow implementation is known, then value provided in task/workflow (if any) is used
+- if none, then no value is used (default being managed by server)
+
+Note that some options (such as maxProcessingTime) will be used by the Agent. For them also the value provided in task/workflow (if any) is used if no value was provided at scheduling => The Agent must not confond default value provided by server with value provided at scheduling (especially if task implementation in unknown at scheduling).
+
+For sake of simplicity (user point of view - not ours !), I suggest that all options can be define at scheduling AND within task or workflow with a common syntax.
+
+Example:  
+`Task::name('SendWeeklyReport')->with($user)->options(['maxProcessingTime' => 300])->schedule();`  
+or  
+`public function getMaxProcessingTime() { return 300; }`
 
 ### Scheduled object
 -----
@@ -173,7 +190,7 @@ Important: when the agent API will be available, the `schedule`method could a `S
 Note: 
 - A `Scheduled` object can be obtained through `Scheduled::whereTask($name)->whereId($id)->find();`
 - cancelling a task / workflow schedule can be done through : `Scheduled::whereTask($name)->whereId($id)->cancel();` (or `Scheduled::whereWorkflow($name)->whereId($id)->cancel();`) 
-- we can imagine that `Scheduled::whereTimeType('repeated')->get();` will provide a view of all recurrent tasks / workflows
+- we can imagine that `Scheduled::repeat()->get();` will provide a view of all recurrent tasks / workflows
 
 Warning: there is an ambiguity in the chosen vocabulary:
 - 'scheduled' points to to the user intention (eg. the email to be sent in 30 minutes)
