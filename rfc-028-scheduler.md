@@ -95,54 +95,55 @@ This implies to have an always on and scalable API - I would tend toward a serve
 ### Syntax For Execute
 
 Inspired by PY proposed syntax for Wait  
-`{$name}::with($args...)->getReturn();`  
-OR equivalent for microservices  
-`Task::name($name)->with($args...)->getReturn();`  
+`Task::name(args...)->execute();`  
 
-Example:  
-`SendWelcomeEmail::with($user, $from)->getReturn();`  
-OR equivalent for microservices  
-`Task::name("SendWelcomeEmail")->with(user, $from)->getReturn();`  
+Example:   
+`Task::SendWelcomeEmail($user, $from)->execute();`
 
 By using a final `getReturn` method, we are free to use chaining methods to define additional options :   
-`Task::name("SendWelcomeEmail")->with(user, $from)->id($user->id)->getReturn();`
+`Task::SendWelcomeEmail($user, $from)->id($user->id)->execute();`
 
 
 ### Syntax For Wait
-*I'm not sure about the `get` method, suggestion welcome*
 
 Wait for a duration  
-`Wait::for()->...->get();`
+`Wait::for()->...->execute();`
 
 Wait for a datetime  
-`Wait::until()->...->get()`
+`Wait::until()->...->execute()`
 
 Wait for an event  
-`Wait::event($eventName)->getEvent();`
+`Wait::event($eventName)->execute();`
 
 Wait for an event, with a maximal duration  
-`Wait::event($eventName)->for()->...->getEvent();`  
+`Wait::event($eventName)->for()->...->execute();`  
 
 Wait for an event, up to a datetime
-`Wait::event($eventName)->until()->...->getEvent();`  
+`Wait::event($eventName)->until()->...->execute();`  
 
 Examples:  
-- `Wait::for()->hours(3)->minutes(30)->get();`  
-- `Wait::until()->monday()->at("8:00")->get();` 
+- `Wait::for()->hours(3)->minutes(30)->execute();`  
+- `Wait::until()->monday()->at("8:00")->execute();` 
 
 ### Syntax For Recurrent Scheduling of a task / workflow
  
 I propose a unique syntax for dispatching a task/ workflow, with or without a delay, recurrent or not. To handle all those cases, we use the `schedule` word:
+ 
+`name::with(args)->schedule();`   
+OR equivalent (for microservices)    
+`Task::new(name)->with(args...)->schedule();`  
 
-`{$name}::with($args)->schedule();`  
-OR equivalent for microservices  
-`Task::name($name)->with($args...)->schedule();`
+For delayed task:  
+`name::with(args)->delay()->...->schedule();`  
+OR equivalent (for microservices)    
+`Task::new(name)->with(args...)->delay()->...->schedule();`  
 
-Derivatives:  
-`{$name}::with($args)->delay()->...->schedule();`  
-`{$name}::with($args)->repeat()->...->schedule();`  
+For recurrent tasks:  
+`name::with(args)->repeat()->...->schedule();`  
+OR equivalent (for microservices)    
+`Task::new(name)->with(args...)->repeat()->...->schedule();`  
 
-Same syntax for `Workflow::name(...`  
+Same syntax for `Workflow::new(...`  
 
 Examples:  
 `SendWelcomeEmail::with($user)->schedule();`  
@@ -150,9 +151,12 @@ Examples:
 `SendWelcomeEmail::with($user)->delay()->until()->monday()->at('8:00')->schedule();`  
 `SendWeeklyReport::with($user)->repeat()->cron('* * * * *')->schedule();`  
 `SendWeeklyReport::with($user)->repeat()->forever()->schedule();`  
-
-OR equivalent for microservices 
-`Task::name('SendWeeklyReport')->with($user)->repeat()->cron('* * * * *')->schedule();`  
+OR equivalent (for microservices)    
+`Task::new('SendWelcomeEmail')->with($user)->schedule();`  
+`Task::new('SendWelcomeEmail')->with($user)->delay()->for()->hours(2)->schedule();`  
+`Task::new('SendWelcomeEmail')->with($user)->delay()->until()->monday()->at('8:00')->schedule();`  
+`Task::new('SendWeeklyReport')->with($user)->repeat()->cron('* * * * *')->schedule();`  
+`Task::new('SendWeeklyReport')->with($user)->repeat()->forever()->schedule();`  
 
 Important: when the agent API will be available, the result of `schedule` method could be a `Scheduled` object
 
