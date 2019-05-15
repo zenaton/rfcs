@@ -95,14 +95,17 @@ This implies to have an always on and scalable API - I would tend toward a serve
 ### Syntax For Execute
 
 Inspired by PY proposed syntax for Wait  
-`Task::name(args...)->execute();`  
+`name::with(args)->execute();`   
+OR equivalent (for microservices)    
+`Task::new(name)->with(args...)->execute();`  
 
-Example:   
-`Task::SendWelcomeEmail($user, $from)->execute();`
+Example:  
+`SendWelcomeEmail::with($user, $from)->execute()`  
+OR equivalent (for microservices)    
+`Task::new(SendWelcomeEmail::class)->with($user, $from)->execute();`
 
-By using a final `getReturn` method, we are free to use chaining methods to define additional options :   
-`Task::SendWelcomeEmail($user, $from)->id($user->id)->execute();`
-
+By using a final `execute` method, we are free to use chaining methods to define additional options :  
+`Task::new(SendWelcomeEmail::class)->with($user, $from)->id($user->id)->execute();`
 
 ### Syntax For Wait
 
