@@ -46,18 +46,11 @@ At the opposite,
 - delayed or recurrent `execute` do NOT make sense
 - return value (if any) should be those of the task/workflow
 - there is an underlying dispatch for an execute, with its own execution history
-
-### Id
-An id provided by the user (`custom_id` for us) means that the user wants later access to this object. Eg. to be able to send an event to a workflow, or also to know the status of a dispatched task or workflow (request formulated multiple times by users : "how to i know the status of execution?"). From the discussion above, it means that the `id` refers to the task/workflow dispatched (the underlying dispatch for `execute`), that - again - can have a complex history execution. 
-
-this `id` serving a reference, *it should be unique* (at least per task or workflow and per environnement). 
-
-A clean implementation implies that the `id` is provided when dispatching in order to be able to assess the success or not. In case of microservices, the `id` can not be read from class implementation and MUST be provided at dispatch. 
  
 ### Options
 Today, no option are provided, but when looking to similar service, we see that adding options to dispatching is inevitable:
 - eg. `schedule_to_finished_timeout` 
-- `child policy` cf. https://docs.aws.amazon.com/amazonswf/latest/developerguide/swf-dev-adv-child-workflows.html
+- `child_policy` cf. https://docs.aws.amazon.com/amazonswf/latest/developerguide/swf-dev-adv-child-workflows.html
 
 Some of those options make sense even before the instruction reachs an Agent, this implies we should provide them at dispatch. 
 
@@ -68,7 +61,7 @@ Some of those options make sense even before the instruction reachs an Agent, th
 - should be able to set:
     * class name
     * arbitrary number of arguments
-    * options such as `id`
+    * options such as `schedule_to_finished_timeout`
 - as we want to return an arbitrary value - we can not use method chaining without having a special closing method.
 
 
@@ -77,7 +70,7 @@ Some of those options make sense even before the instruction reachs an Agent, th
 - should be able to set:
     * class name
     * arbitrary number of arguments
-    * options such as `id`, or `timeout`
+    * options such as `schedule_to_finished_timeout`
 - should be able do set delay
 - should be able to set scheduling (recurrent execution)
 - if we want to return a useful value - such as a object - we can not use method chaining without having a special closing method.
@@ -128,7 +121,7 @@ Examples:
 - `Wait::for()->hours(3)->minutes(30)->execute();`  
 - `Wait::until()->monday()->at("8:00")->execute();` 
 
-### Syntax For Recurrent Scheduling of a task / workflow
+### Syntax For Scheduling of Task / Workflow
  
 I propose a unique syntax for dispatching a task/ workflow, with or without a delay, recurrent or not. To handle all those cases, we use the `schedule` word:
  
@@ -136,30 +129,32 @@ I propose a unique syntax for dispatching a task/ workflow, with or without a de
 OR equivalent (for microservices)    
 `Task::new(name)->with(args...)->schedule();`  
 
-For delayed task:  
-`name::with(args)->delay()->...->schedule();`  
-OR equivalent (for microservices)    
-`Task::new(name)->with(args...)->delay()->...->schedule();`  
+Task delayed for a duration:  
+`->delay()->for()->...->schedule();`  (helpers)  
+OR     
+`->delay('for ...')->schedule();`  
 
-For recurrent tasks:  
-`name::with(args)->repeat()->...->schedule();`  
-OR equivalent (for microservices)    
-`Task::new(name)->with(args...)->repeat()->...->schedule();`  
+Task delayed until a date:  
+`->delay()->until()->...->schedule();`  (helpers)  
+OR       
+`->delay('until ...')->schedule();`  
+
+Recurrent tasks:  
+`->repeat()->...->schedule();`   (helpers)  
+OR   
+`->repeat('* * * * *')->schedule();` (cron format or other to be detected)
 
 Same syntax for `Workflow::new(...`  
 
 Examples:  
 `SendWelcomeEmail::with($user)->schedule();`  
-`SendWelcomeEmail::with($user)->delay()->for()->hours(2)->schedule();`  
+`SendWelcomeEmail::with($user)->delay('for 2 hours')->schedule();`  
+`SendWelcomeEmail::with($user)->delay()->for()->hours(2)->schedule();` 
+`SendWelcomeEmail::with($user)->delay('until Monday at 8:00)->schedule();`  
 `SendWelcomeEmail::with($user)->delay()->until()->monday()->at('8:00')->schedule();`  
-`SendWeeklyReport::with($user)->repeat()->cron('* * * * *')->schedule();`  
-`SendWeeklyReport::with($user)->repeat()->forever()->schedule();`  
-OR equivalent (for microservices)    
-`Task::new('SendWelcomeEmail')->with($user)->schedule();`  
-`Task::new('SendWelcomeEmail')->with($user)->delay()->for()->hours(2)->schedule();`  
-`Task::new('SendWelcomeEmail')->with($user)->delay()->until()->monday()->at('8:00')->schedule();`  
-`Task::new('SendWeeklyReport')->with($user)->repeat()->cron('* * * * *')->schedule();`  
-`Task::new('SendWeeklyReport')->with($user)->repeat()->forever()->schedule();`  
+`SendWeeklyReport::with($user)->repeat('* * * * *')->schedule();`  
+`SendWeeklyReport::with($user)->repeat()->everyDay()->at('8:00')->schedule();`  
+`SendWeeklyReport::with($user)->repeat()->forever()->schedule();`   
 
 Important: when the agent API will be available, the result of `schedule` method could be a `Scheduled` object
 
@@ -178,8 +173,11 @@ Important: when the agent API will be available, the result of `schedule` method
 - history details (*format to define, it should include all retries* - *for a recurrent scheduling, provide details of each iteration*)
 
 Note: 
-- A `Scheduled` object can be obtained through `Scheduled::whereTask($name)->whereId($id)->find();`
-- cancelling a task / workflow schedule can be done through : `Scheduled::whereTask($name)->whereId($id)->cancel();` (or `Scheduled::whereWorkflow($name)->whereId($id)->cancel();`) 
+- A `Scheduled` object can be obtained through  
+`Scheduled::whereTask($name)->whereId($id)->find();`  
+`Scheduled::whereTag($tag)->get();`  
+- cancelling a task / workflow schedule can be done through :  
+`Scheduled::whereTask($name)->whereId($id)->cancel();` (or `Scheduled::whereWorkflow($name)->whereId($id)->cancel();`) 
 - we can imagine that `Scheduled::repeat()->get();` will provide a view of all recurrent tasks / workflows
 
 Warning: there is an ambiguity in the chosen vocabulary:
@@ -204,12 +202,10 @@ Example:
 or  
 `public function getMaxProcessingTime() { return 300; }`
 
-Note: I hesitate with `SendWelcomeEmail::with($user)->maxProcessingTime(300)->schedule();`  
-
 ## Short Term
 
 To avoid to make too much changes, a first implementation of recurrent executions could be:
 
-`(new $name($args...))->repeat()->cron('* * * * *')->schedule();`
+`(new $name($args...))->repeat('* * * * *')->schedule();`
 
 With a graphical dashboard of all recurrent scheduling, where the user can manually cancel a recurrent scheduling
