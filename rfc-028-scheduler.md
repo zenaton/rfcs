@@ -95,15 +95,15 @@ OR equivalent (for microservices)
 Example:  
 `SendWelcomeEmail::with($user, $from)->execute()`  
 OR equivalent (for microservices)    
-`Task::new(SendWelcomeEmail::class)->with($user, $from)->execute();`
+`Task::new('SendWelcomeEmail')->with($user, $from)->execute();`
 
 By using a final `execute` method, we are free to use chaining methods to define additional options :  
-`Task::new(SendWelcomeEmail::class)->with($user, $from)->id($user->id)->execute();`
+`Task::new('SendWelcomeEmail')->with($user, $from)->tag($user->id)->execute();`
 
 ### Syntax For Wait
 
 Wait for a duration  
-`Wait::for()->...->execute();`
+`Wait::for()->...->execute();` 
 
 Wait for a datetime  
 `Wait::until()->...->execute()`
@@ -125,36 +125,51 @@ Examples:
  
 I propose a unique syntax for dispatching a task/ workflow, with or without a delay, recurrent or not. To handle all those cases, we use the `schedule` word:
  
-`name::with(args)->schedule();`   
+For   
+`$task = name::with(args);`   
 OR equivalent (for microservices)    
-`Task::new(name)->with(args...)->schedule();`  
-
-Task delayed for a duration:  
-`->delay()->for()->...->schedule();`  (helpers)  
-OR     
-`->delay('for ...')->schedule();`  
-
-Task delayed until a date:  
-`->delay()->until()->...->schedule();`  (helpers)  
-OR       
-`->delay('until ...')->schedule();`  
-
-Recurrent tasks:  
-`->repeat()->...->schedule();`   (helpers)  
-OR   
-`->repeat('* * * * *')->schedule();` (cron format or other to be detected)
-
-Same syntax for `Workflow::new(...`  
+`$task = Task::new(name)->with(args...);`  
 
 Examples:  
-`SendWelcomeEmail::with($user)->schedule();`  
-`SendWelcomeEmail::with($user)->delay('for 2 hours')->schedule();`  
-`SendWelcomeEmail::with($user)->delay()->for()->hours(2)->schedule();` 
-`SendWelcomeEmail::with($user)->delay('until Monday at 8:00)->schedule();`  
-`SendWelcomeEmail::with($user)->delay()->until()->monday()->at('8:00')->schedule();`  
-`SendWeeklyReport::with($user)->repeat('* * * * *')->schedule();`  
-`SendWeeklyReport::with($user)->repeat()->everyDay()->at('8:00')->schedule();`  
-`SendWeeklyReport::with($user)->repeat()->forever()->schedule();`   
+- `$task = SendWelcomeEmail::with($user);`  
+OR  
+- `$task = Task::new('SendWelcomeEmail')->with($user);`  
+
+
+#### Task immediatly dispatched  
+`$task->schedule()`
+
+#### Task dispatched after a duration:  
+`$task->delay()->for()->...->schedule();`  (... = helpers)  
+OR     
+`$task->delay('for ...')->schedule();`  
+
+#### Task dispatched at a date:  
+`$task->delay()->until()->...->schedule();`  (... = helpers)  
+OR       
+`$task->delay('until ...')->schedule();`  
+
+#### Recurring tasks:  
+`$task->repeat()->...->schedule();`   (... = helpers)  
+OR   
+`$task->repeat('* * * * *')->schedule();` (cron format or other to be detected)
+
+#### workflows
+Same syntax for 
+`workflow = name::with(args);`   
+OR equivalent (for microservices)    
+`workflow = Workflow::new(name)->with(args...);` 
+
+#### Examples:  
+
+- `SendWelcomeEmail::with($user)->schedule();`  
+- `SendWelcomeEmail::with($user)->delay('for 2 hours')->schedule();`
+- `SendWelcomeEmail::with($user)->delay()->for()->hours(2)->schedule();`
+- `SendWelcomeEmail::with($user)->delay('until Monday at 8:00)->schedule();`
+- `SendWelcomeEmail::with($user)->delay()->until()->monday()->at('8:00')->schedule();`
+- `SendReport::with($user)->repeat('* * * * *')->schedule();`
+- `SendReport::with($user)->repeat()->everyDay()->at('8:00')->schedule();`
+- `SendReport::with($user)->repeat()->forever()->schedule();`   
 
 Important: when the agent API will be available, the result of `schedule` method could be a `Scheduled` object
 
@@ -193,7 +208,7 @@ The following rules will apply to determinate value of an option or `id` at sche
 - if none and task/workflow implementation is known, then value provided in task/workflow (if any) is used
 - if none, then no value is used (default being managed by server)
 
-Note that some options (such as maxProcessingTime) will be used by the Agent. For them also the value provided in task/workflow (if any) is used if no value was provided at scheduling => The Agent must not confond default value provided by server with value provided at scheduling (especially if task implementation in unknown at scheduling).
+Note that some options (such as `maxProcessingTime`) will be used by the Agent. For them also the value provided in task/workflow (if any) is used if no value was provided at scheduling => The Agent must not confond default value provided by server with value provided at scheduling (especially if task implementation in unknown at scheduling).
 
 For sake of simplicity (user point of view - not ours !), I suggest that all options can be define at scheduling AND within task or workflow with a common syntax.
 
