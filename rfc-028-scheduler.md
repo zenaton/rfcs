@@ -214,6 +214,8 @@ For sake of simplicity (user point of view - not ours !), I suggest that all opt
 
 Example:  
 `SendWelcomeEmail::with($user)->options(['maxProcessingTime' => 300])->schedule();`  
+or
+`SendWelcomeEmail::with($user)->schedule(['maxProcessingTime' => 300]); // options as scheduling parameters ` 
 or  
 `public function getMaxProcessingTime() { return 300; }`
 
