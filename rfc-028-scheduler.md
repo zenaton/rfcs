@@ -213,11 +213,11 @@ Note that some options (such as `maxProcessingTime`) will be used by the Agent. 
 For sake of simplicity (user point of view - not ours !), I suggest that all options can be define at scheduling AND within task or workflow with a common syntax.
 
 Example:  
-`SendWelcomeEmail::with($user)->options(['maxProcessingTime' => 300])->schedule();`  
-or
-`SendWelcomeEmail::with($user)->schedule(['maxProcessingTime' => 300]); // options as scheduling parameters ` 
-or  
-`public function getMaxProcessingTime() { return 300; }`
+`SendWelcomeEmail::with($user)->options(['maxProcessingTime' => 300])->schedule();`    
+or    
+`SendWelcomeEmail::with($user)->schedule(['maxProcessingTime' => 300]); // options as scheduling parameters `    
+or    
+`public function getMaxProcessingTime() { return 300; }`    
 
 ## Short Term
 
