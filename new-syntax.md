@@ -103,7 +103,7 @@ When scheduling, we can assign a tag to a task or a workflow:
 
 `Schedule::task('SendMail')->args(...)->tag($tag)->now();`
 
-$tag is a string, eg. 'id:1781b8c7'. We may add multiples tags, by repeating `tag` method.
+`$tag` is a string, eg. `'id:1781b8c7'`. We may add multiples tags, by repeating `tag` method.
 
 Note: user does not have anymore the ability to provide an `id` - this is replaced by tags.
 
@@ -160,7 +160,7 @@ Except `whereId()`, other selection criteria can be mixed, for example:
 - select by tag (OR)  
     `Tasks::hasTag($tag1)->orTag($tag2)`
 
-## Commands on selection
+## Commands
 
 On selection of tasks or workflows, we can
 - `id()` retrieve `id` (our `schedule_id`)
@@ -187,14 +187,14 @@ From a workflow implementation:
 
 ### History command (Tasks and Workflows)
 
-On a selection of tasks or workflows, we can retrieve processing history, eg.
-    - name
-    - id
-    - args
-    - tags
-    - delay (default:0)
-    - repeated (default:none)
-    - *history*
+On a selection of tasks or workflows, we can retrieve processing history, eg.  
+- name  
+- id  
+- args  
+- tags  
+- delay (default:0)  
+- repeated (default:none)
+- *history*
 
 As a user, we can use this to display a status of processing.
 
@@ -240,10 +240,10 @@ Wait for an event, with a maximal duration
 Wait for an event, up to a date time  
 `Wait:event($eventName)->until($date);`
 
-Note: $duration and $date are used as for delayed tasks.
+Note: `$duration` and `$date` are the same as used for delayed tasks.
 
 #### Commands in workflow
 
-All acting syntax should be working inside a workflow. It implies that, inside a workflow, we should manage acting idempotency.
+All commands syntax should be working inside a workflow. It implies that, inside a workflow, we should manage command idempotency.
 
 
