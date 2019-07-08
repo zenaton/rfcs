@@ -18,29 +18,29 @@ After *a lot* of iteration, I converged toward the syntax below.
 
 ### Scheduling for immediate processing
 
-`Schedule::task('SendMail')->args(...)->now();`
+`Schedule::task('SendMail')->with(...);`
 
 `...` are task's arguments.
 
 ### Scheduling delayed for a duration
 
-`Schedule::task('SendMail')->args(...)->delayed()->for($duration);`
+`Schedule::in($duration)->task('SendMail')->with(...);`
 
 $duration is an integer (seconds). We may provide a `Duration` class, to allow
 syntax such as `Duration::hours(2)->minutes(10)`.
 
 ### Scheduling delayed until a date time:  
 
-`Schedule::task('SendMail')->args(...)->delayed()->until($date);`
+`Schedule::at($date)->task('SendMail')->with(...);`
 
 $date is an DateTime. We may provide a `Date` class, to allow
 syntax such as `Date::monday()->at('8:00')`.
 
 ### Scheduling repeated ...:  
 
-`Schedule::task('SendMail')->args(...)->repeated($each);`
+`Schedule::each($cron)->task('SendMail')->with(...);`
 
-$each is a cron expression. We may provide a `Each` class to allow
+$cron is a cron expression. We may provide a `Each` class to allow
 syntax such as `Each::day()->at('8:00')`.
 
 Reapeated task or workflow are a bit difficult to handle conceptually.
@@ -50,7 +50,7 @@ Thinking them as always running workflows with task/sub-workflows may help.
 
 Same syntax that tasks, except that we use `Schedule::workflow`, for example:
 
-`Schedule::workflow('SendMailSerie')->args(...)->now();`
+`Schedule::workflow('SendMailSerie')->with(...)`
 
 ## Scheduling Options
 
@@ -71,7 +71,7 @@ Note that some options (such as `maxProcessingTime`) will be used by the Agent. 
 
 For sake of simplicity (user point of view - not ours !), I suggest that all options can be define at scheduling AND within task or workflow with a common syntax.
 
-`Schedule::workflow('SendMailSerie')->args(...)->options($options)->now();`
+`Schedule::options($options)->task('SendMail')->with(...);`
 
 or inside task or workflow
 ```
@@ -83,7 +83,7 @@ public function options()
 With (example) `$options = [Task::MaxProcessingTime => 300]`
 
 We could also offer the options to set default values:  
-`Schedule::workflow('SendMailSerie')->setDefaultOptions($options);`
+`Schedule::setDefaultOptions($options)->workflow('SendMailSerie')`
 
 ## Scheduling's Output
 
@@ -101,14 +101,14 @@ Any schedule will synchronously output a `Task` or `Workflow` object with:
 
 When scheduling, we can assign a tag to a task or a workflow:
 
-`Schedule::task('SendMail')->args(...)->tag($tag)->now();`
+`Schedule::task('SendMail')->tag($tag1, $tag2)->with(...);`
 
 `$tag` is a string, eg. `'id:1781b8c7'`. We may add multiples tags, by repeating `tag` method.
 
 Note: user does not have anymore the ability to provide an `id` - this is replaced by tags.
 
-Note: when tagging a repeated workflow:  
-`Schedule::task('SendMail')->args(...)->tag($tag)->repeated();`  
+Note: when tagging a repeated (each) workflow:  
+`Schedule::each($cron)->task('SendMail')->tag($tag)->with(...);`  
 the tag is applied to the repeatable, *not* the underlying instances.
 
 ## Selecting
@@ -142,12 +142,12 @@ Output will be a collection of instances.
 We can select instances of tasks or workflows by tags: 
 
 - select task by tag  
-    `Tasks::hasTag($tag)`  
+    `Task::hasTag($tag1, $tag2)`  
 
 - select workflow by tag   
     `Workflow::hasTag($tag)`
 
-Output will be a collection of instances.
+Output will be a collection of instances. $tag can be a regular expression.
 
 ### Combined
 
@@ -156,17 +156,16 @@ Except `whereId()`, other selection criteria can be mixed, for example:
 - select tasks by name and tag  
     `Tasks::whereName($name)->hasTag($tag)`  
 - select by multiple tags (AND)  
-    `Tasks::hasTag($tag1)->hasTag($tag2)`
+    `Tasks::hasTag($tag1)->hasTag($tag2)` // deprecated? hasTag can have multiple tags
 - select by tag (OR)  
-    `Tasks::hasTag($tag1)->orTag($tag2)`
+    `Tasks::hasTag($tag1)->orTag($tag2)` // deprecated? hasTag accept regular expressions
 
 ## Commands
 
 On selection of tasks or workflows, we can
 - `id()` retrieve `id` (our `schedule_id`)
 - `history()` retrieve processing history
-- `skip()` skip processing (useful only for tasks within workflows)
-- `cancel()` cancelling  (useful only for delayed and repeated)
+- `skip()` skip processing (makes sense only if a parent exists)
 
 On selection of workflows only:
 - `pause()` pause selected instances
@@ -198,10 +197,6 @@ On a selection of tasks or workflows, we can retrieve processing history, eg.
 
 As a user, we can use this to display a status of processing.
 
-### Cancel command (Tasks and Workflows)
-
-Cancelling tasks are best effort (possible only when not yet sent to queues, and for repeated).
-
 ## Inside a workflow
 
 #### Scheduling in workflow
@@ -212,11 +207,11 @@ All scheduling syntax should be working inside a workflow. It implies that, insi
 
 For "executing" jobs, ie. by waiting the output to continue workflow execution, we do:
 
-`Execute::task('SendMail')->args(...);`
+`Execute::task('SendMail')->with(...);`
 
 and for (sub-)workflow:
 
-`Execute::workflow('SendMail')->args(...);`
+`Execute::workflow('SendMail')->with(...);`
 
 There is no way to delay with this syntax, as user should use provided `Wait` class.
 
@@ -239,6 +234,9 @@ Wait for an event, with a maximal duration
 
 Wait for an event, up to a date time  
 `Wait:event($eventName)->until($date);`
+
+Wait for an event with data filter
+`Wait:event($eventName, {key: value})->forever();`
 
 Note: `$duration` and `$date` are the same as used for delayed tasks.
 
