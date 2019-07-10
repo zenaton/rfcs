@@ -262,4 +262,153 @@ Note: `$duration` and `$date` are the same as used for delayed tasks.
 
 All commands syntax should be working inside a workflow. It implies that, inside a workflow, we should manage command idempotency.
 
+## Executing API from a 3rd Party Service
 
+
+### From an HTTP API
+
+With `const { execute, dispatch } = require("zenaton");`
+
+Sync request
+```javascript
+await execute.verb(url, body);
+```
+
+Async request
+```javascript
+await dispatch.verb(url, body);
+```
+
+Examples:
+```javascript
+await execute.post('https://slack.com/api/chat.postMessage', {...});
+
+await dispatch.post('https://slack.com/api/chat.postMessage', {...});
+```
+
+### From a SDK
+
+With `const { execute, dispatch } = require("zenaton");`
+
+Sync request
+
+```javascript
+await execute.task('service:method').width(...);
+```
+
+Async request
+
+```javascript
+await dispatch.task('service:method').width(...);
+```
+
+Examples:
+
+```javascript
+await execute.task('aws.s3:getObject').width(...);
+```
+
+```javascript
+await dispatch.task('aws.ses:SendRawEmail').width(...);
+```
+
+```javascript
+await execute.task('slack:web.chat.postMessage').width(...);
+```
+
+## Listening Events from a 3rd Party Service
+
+### From inside a workflow
+
+#### Listening all events
+```javascript
+await this.listen('service:');
+```
+
+#### Listening a specific event
+```javascript
+await this.listen('service:event_name');
+```
+
+#### Listening a specific event with specific data
+```javascript
+await this.listen('service:event_name', {email: 'foo@bar.com'});
+```
+
+#### Listening a specific event but only related to an object created by a HTTP API
+
+```javascript
+await execute.listen('service:event_name').post(url, body);
+```
+
+Example:
+```javascript
+await execute
+        .listen('slack:reaction_added')
+        .post('https://slack.com/api/chat.postMessage', body);
+```
+
+#### Listening a specific event but only  related to an object created by a SDK
+
+```javascript
+await execute.listen('service:event_name').task('service:method').with(...);
+```
+
+Example:
+```javascript
+await execute
+        .listen('slack:reaction_added')
+        .task('slack:web.chat.postMessage')
+        .width(...);
+```
+
+### From outside a workflow
+
+Same syntax, but begining with a selection, eg.
+```javascript
+await Workflow.whereName('Retention').listen('service:');
+await Workflow.whereName('Retention').listen('service:event_name');
+await Workflow.whereName('Retention').listen('service:event_name', {email: 'foo@bar.com'});
+```
+
+## Waiting Events from a 3rd Party Service
+
+With `const { wait } = require("zenaton");`
+
+Waiting all events
+```javascript
+await wait.event('service:').forever();
+```
+
+Waiting a specific event
+```javascript
+await wait.event('service:event_name').forever();
+```
+
+Waiting a specific event with specific data
+```javascript
+await wait.event('service:event_name', {email: 'foo@bar.com'}).forever();
+```
+
+## Example
+
+Post a message and remove any reaction to it for 1 hour:
+
+```javascript
+const { Workflow, dispatch, execute, wait } = require("zenaton");
+
+module.exports = Workflow("PostSlackMessageWithoutReaction", {
+  async handle() {
+    await dispatch.listen('slack:reaction_added').post('https://slack.com/api/chat.postMessage', {
+        channel: 'C1234567890',
+        text: 'try to react ont this!)'
+    }).now();
+    await wait.for(3600);
+  },
+  onEvent(event, data) {
+    if (event === 'slack:reaction_added') {
+      await execute.post('https://slack.com/api/reactions.remove', {timestamp: data.timestamp});
+    }
+  }
+})
+```
