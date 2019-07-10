@@ -238,23 +238,23 @@ Wait for an event, up to a date time
 Wait for an event with data filter
 `Wait:event($eventName, {key: value})->forever();`
 
-Wait for multiple events (AND)
-`Wait:event([$event1Name, $event2Name])->forever();`
-return an array of events when done.
+Wait for multiple events (AND)  
+`Wait:event([$event1Name, $event2Name])->forever();`  
+return an array of events when done.  
 
-Wait for multiple events with data filter (AND)
-`Wait:event([$event1Name, {key: value}, $event2Name, {key: value}])->forever();`
-return an array of events when done.
+Wait for multiple events with data filter (AND)  
+`Wait:event([$event1Name, {key: value}, $event2Name, {key: value}])->forever();`  
+return an array of events when done.  
 
-Wait for multiple events (OR)
-`Wait:event($event1Name, $event2Name)->forever();`
+Wait for multiple events (OR)  
+`Wait:event($event1Name, $event2Name)->forever();`  
 
-Wait for multiple events with data filter (OR)
-`Wait:event($event1Name, {key: value}, $event2Name, {key: value})->forever();`
+Wait for multiple events with data filter (OR)  
+`Wait:event($event1Name, {key: value}, $event2Name, {key: value})->forever();`  
 
-Wait for multiple events (AND and OR)
-`Wait:event([$event1Name, $event2Name], $event3Name)->forever();`
-return an array of events when done.
+Wait for multiple events (AND and OR)  
+`Wait:event([$event1Name, $event2Name], $event3Name)->forever();`  
+return an array of events when done.  
 
 Note: `$duration` and `$date` are the same as used for delayed tasks.
 
