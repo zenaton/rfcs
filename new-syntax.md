@@ -171,7 +171,7 @@ On selection of workflows only:
 - `pause()` pause selected instances
 - `resume()` resume selected instances
 - `terminate()` terminate selected instances
-- `send($event)` send $event to selected instances
+- `send($eventName, $eventData)` send $event to selected instances
 
 From a task and workflow implementation:
 - `$this->id()` provides own `id` (our `schedule_id`)
@@ -182,7 +182,7 @@ From a workflow implementation:
 - `$this->pause()` pause itself
 - `$this->resume()` resume itself (useless?)
 - `$this->terminate()` terminate itself
-- `$this->send($event)` send event to itself 
+- `$this->send($eventName, $eventData)` send event to itself 
 
 ### History command (Tasks and Workflows)
 
