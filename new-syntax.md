@@ -162,7 +162,7 @@ Except `whereId()`, other selection criteria can be mixed, for example:
 
 ## Commands
 
-On selection of tasks or workflows, we can
+On a collection of tasks or workflows, we can
 - `id()` retrieve `id` (our `schedule_id`)
 - `history()` retrieve processing history
 - `skip()` skip processing (makes sense only if a parent exists)
