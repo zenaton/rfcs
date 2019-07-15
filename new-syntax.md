@@ -10,35 +10,38 @@ Current syntax has issues:
   - delays
   - workflow state introspection 
 
-## Proposal
-
-After *a lot* of iteration, I converged toward the syntax below.
-
 ## Scheduling Tasks
 
 ### Scheduling for immediate processing
 
-`Schedule::task('SendMail')->with(...);`
+```php
+Schedule::task($name, Array $data = []);
+```
 
-`...` are task's arguments.
+`$name` is a string and `$data` is an array representing task's arguments (eg. `new $name(...$data)`, ie. `[]` means no argument, `[1,2]`means 2 arguments `1` and `2`). To simplify, we will just write `$data` below, instead of `Array $data = []`).
 
 ### Scheduling delayed for a duration
 
-`Schedule::in($duration)->task('SendMail')->with(...);`
+```php
+Schedule::in($duration)->task($name, $data);
+```
 
-$duration is an integer (seconds). We may provide a `Duration` class, to allow
-syntax such as `Duration::hours(2)->minutes(10)`.
+$duration is an integer (seconds). We may provide a `Duration` class, to allow syntax such as  `Duration::hours(2)->minutes(10)`.
 
-### Scheduling delayed until a date time:  
+### Scheduling delayed until a date time 
 
-`Schedule::at($date)->task('SendMail')->with(...);`
+```php
+Schedule::at($date)->task($name, $data);
+```
 
 $date is an DateTime. We may provide a `Date` class, to allow
 syntax such as `Date::monday()->at('8:00')`.
 
-### Scheduling repeated ...:  
+### Recurrent Scheduling  
 
-`Schedule::each($cron)->task('SendMail')->with(...);`
+```php
+Schedule::repeat($cron)->task($name, $data);
+```
 
 $cron is a cron expression. We may provide a `Each` class to allow
 syntax such as `Each::day()->at('8:00')`.
@@ -48,9 +51,17 @@ Thinking them as always running workflows with task/sub-workflows may help.
 
 ## Scheduling Workflows
 
-Same syntax that tasks, except that we use `Schedule::workflow`, for example:
+Same syntax that tasks, except that we use `workflow` instead of `task`, for example:
 
-`Schedule::workflow('SendMailSerie')->with(...)`
+```php
+Schedule::workflow($name, $data);
+
+Schedule::in($duration)->workflow($name, $data);
+
+Schedule::at($date)->workflow($name, $data);
+
+Schedule::repeat($cron)->workflow($name, $data);
+```
 
 ## Scheduling Options
 
@@ -58,7 +69,7 @@ Today, no option are provided, but when looking to similar service, we see that 
 - eg. `schedule_to_finished_timeout` 
 - `child_policy` cf. https://docs.aws.amazon.com/amazonswf/latest/developerguide/swf-dev-adv-child-workflows.html
 
-Some of those options make sense even before the instruction reachs an Agent, this implies we should provide them at scheduling. 
+Some of those options (such as `schedule_to_finished_timeout`) make sense even before the instruction reachs an Agent, this implies we should provide them at scheduling. 
 
 It can be useful (for backward compatibility or for more elegant syntax) to be able to define options inside task or workflow.
 
@@ -67,23 +78,30 @@ The following rules will apply to determinate value of an option at scheduling:
 - if none and task/workflow implementation is known, then value provided in task/workflow (if any) is used
 - if none, then no value is used (default being managed by server)
 
-Note that some options (such as `maxProcessingTime`) will be used by the Agent. For them also the value provided in task/workflow (if any) is used if no value was provided at scheduling => The Agent must not confond default value provided by server with value provided at scheduling (especially if task implementation in unknown at scheduling).
+Note that some options (such as `maxProcessingTime`) will be used by the Agent only. For them also the value provided in task/workflow (if any) is used if no value was provided at scheduling => The Agent must not confond default value provided by server with value provided at scheduling (especially if task implementation in unknown at scheduling).
 
 For sake of simplicity (user point of view - not ours !), I suggest that all options can be define at scheduling AND within task or workflow with a common syntax.
 
-`Schedule::options($options)->task('SendMail')->with(...);`
+```php
+Schedule::options($options)->...;
+```
 
 or inside task or workflow
-```
+
+```php
 public function options()
 {
     return $options;
 }
 ``` 
+
 With (example) `$options = [Task::MaxProcessingTime => 300]`
 
-We could also offer the options to set default values:  
-`Schedule::setDefaultOptions($options)->workflow('SendMailSerie')`
+We could also offer the options to set default values:
+
+```php
+Schedule::defaultOptions($options)->...
+```
 
 ## Scheduling's Output
 
@@ -92,91 +110,91 @@ Any schedule will synchronously output a `Task` or `Workflow` object with:
 - id (provided by sdk)
 - args
 - tags
-- delay (default:0)
+- delay (default:0) // buffer ?
 - repeated (default:none)
 
-`id` (our `schedule_id`) is the (unique) most interesting value, as user may store is for future usage. 
+`id` (our `intent_id`) is the (unique) most interesting value, as user may store is for future usage. 
 
-## Tagging
+## Scheduling's Tags
 
-When scheduling, we can assign a tag to a task or a workflow:
+When scheduling , we can assign a tag:
 
-`Schedule::task('SendMail')->tag($tag1, $tag2)->with(...);`
+```php
+Schedule::tag($tag1, $tag2)->...;
+```
 
 `$tag` is a string, eg. `'id:1781b8c7'`. We may add multiples tags, by repeating `tag` method.
 
 Note: user does not have anymore the ability to provide an `id` - this is replaced by tags.
 
-Note: when tagging a repeated (each) workflow:  
-`Schedule::each($cron)->task('SendMail')->tag($tag)->with(...);`  
-the tag is applied to the repeatable, *not* the underlying instances.
+Note: when tagging a recurrent scheduling
+`Schedule::repeat($cron)->tag($tag)->...;`  
+the tag is applied to the recurrent scheduling, *not* the underlying instances.
 
 ## Selecting
 
 ### By Id
 
-We can find a task or a workflow by its `id` (our `schedule_id`)
+We can find a task or a workflow by its `id` (our `intent_id`)
 
 - select task by Id  
-    `Task::whereId($id)`  
+    `Task::whereId($id)->...`  
 
 - select workflow by Id  
-    `Workflow::whereId($id)` 
+    `Workflow::whereId($id)->...` 
 
-Output will be a unique instance.
+When applied, the output will be a collection (containing 0 or 1 element)
+Later `$id` could also be a regular expression.
 
 ### By name
 
 We can select instances of tasks or workflows by name: 
 
 - select task by name  
-    `Task::whereName($name)`  
+    `Task::whereName($name)->...`  
 
 - select workflow by name  
-    `Workflow::whereName($name)` 
+    `Workflow::whereName($name)->...` 
 
-Output will be a collection of instances.
+When applied, the output will be a collection (containing 0 or more element).
+Later `$name` could also be a regular expression.
 
 ### By Tags
 
 We can select instances of tasks or workflows by tags: 
 
-- select task by tag  
-    `Task::hasTag($tag1, $tag2)`  
+- select task by tag: `Task::hasTag($tag)->...`  
 
-- select workflow by tag   
-    `Workflow::hasTag($tag)`
+- select workflow by tag: `Workflow::hasTag($tag)->...`
 
-Output will be a collection of instances. $tag can be a regular expression.
+When applied, the output will be a collection (containing 0 or more element).
+
+Later, we could add 
+- a `andTag($tag)` method
+- the possibility for `$tag` to be a regular expression (allowing logical "or").
 
 ### Combined
 
-Except `whereId()`, other selection criteria can be mixed, for example:
-
-- select tasks by name and tag  
+Selection criteria can be mixed, for example selecting tasks by name and tag  
     `Tasks::whereName($name)->hasTag($tag)`  
-- select by multiple tags (AND)  
-    `Tasks::hasTag($tag1)->hasTag($tag2)` // deprecated? hasTag can have multiple tags
-- select by tag (OR)  
-    `Tasks::hasTag($tag1)->orTag($tag2)` // deprecated? hasTag accept regular expressions
 
 ## Commands
 
-On a collection of tasks or workflows, we can
-- `id()` retrieve `id` (our `schedule_id`)
-- `history()` retrieve processing history
+On a selection of tasks or workflows, we can
+- `id()` retrieve `id`s (our `intent_id`s)
+- `history()` retrieve processing histories
 - `skip()` skip processing (makes sense only if a parent exists)
-
-On selection of workflows only:
-- `pause()` pause selected instances
-- `resume()` resume selected instances
-- `terminate()` terminate selected instances
-- `send($eventName, $eventData)` send $event to selected instances
 
 From a task and workflow implementation:
 - `$this->id()` provides own `id` (our `schedule_id`)
 - `$this->history()` retrieve own history
 - `$this->skip()` skip own processing (useful only for tasks or workflows within workflows)
+
+On selection of workflows only:
+- `pause()` pause selected instances
+- `resume()` resume selected instances
+- `terminate()` terminate selected instances
+- `send($eventName, $eventData)` send event to selected instances
 
 From a workflow implementation:
 - `$this->pause()` pause itself
@@ -199,75 +217,126 @@ As a user, we can use this to display a status of processing.
 
 ## Inside a workflow
 
-#### Scheduling in workflow
+### Scheduling 
 
 All scheduling syntax should be working inside a workflow. It implies that, inside a workflow, we should manage scheduling idempotency.
 
-#### Executing
+### Executing
 
 For "executing" jobs, ie. by waiting the output to continue workflow execution, we do:
 
-`Execute::task('SendMail')->with(...);`
+```php
+Execute::task($name, $data);
+```
 
 and for (sub-)workflow:
 
-`Execute::workflow('SendMail')->with(...);`
+```php
+Execute::workflow($name, $data);
+```
 
-There is no way to delay with this syntax, as user should use provided `Wait` class.
+There is no way to delay or repeat an execution. But *tags* or *options* can be used, with same syntax than for scheduling.
 
-#### Waiting
+### Waiting
 
-Wait forever  
-`Wait::forever();`
+Waiting forever
 
-Wait for a duration  
-`Wait::for($duration);`
+```php
+Wait::forever();
+```
 
-Wait for a datetime  
-`Wait::until($date);`
+Waiting for a duration  
 
-Wait for an event  
-`Wait:event($eventName)->forever();`
+```php
+Wait::for($duration);
+```
 
-Wait for an event, with a maximal duration  
-`Wait:event($eventName)->for($duration);`
+Waiting for a datetime  
 
-Wait for an event, up to a date time  
-`Wait:event($eventName)->until($date);`
+```php
+Wait::until($date);
+```
 
-Wait for an event with data filter
-`Wait:event($eventName, {key: value})->forever();`
+Note 1: with above syntax, the return value is always `null`.
 
-Wait for multiple events (AND)  
-`Wait:event([$event1Name, $event2Name])->forever();`  
-return an array of events when done.  
+Note 2: `$duration` and `$date` are the same as used for delayed tasks. 
 
-Wait for multiple events with data filter (AND)  
-`Wait:event([$event1Name, {key: value}, $event2Name, {key: value}])->forever();`  
-return an array of events when done.  
+### Events
 
-Wait for multiple events (OR)  
-`Wait:event($event1Name, $event2Name)->forever();`  
+Events are explicitly *sent* to workflows: 
+- for a choregraphy, or *event-driven architecture*, they can be sent to all workflows:
+`Workflow::send($eventName, $eventData)`. 
+- for an orchestration, they can be sent to a specific workflow:
+`Workflow::whereId($id)->send($eventName, $eventData)`.
 
-Wait for multiple events with data filter (OR)  
-`Wait:event($event1Name, {key: value}, $event2Name, {key: value})->forever();`  
+Within a workflow, receiving an event `$eventName` will:
+1) trigger exit of an ongoing `Wait` instruction specific to this event
+2) trigger execution of an `on{$eventName}` method, if it exists
+3) do nothing if not 1) or 2)
 
-Wait for multiple events (AND and OR)  
-`Wait:event([$event1Name, $event2Name], $event3Name)->forever();`  
-return an array of events when done.  
+#### Waiting for an event
 
-Note: `$duration` and `$date` are the same as used for delayed tasks.
+Waiting for an event without time limitation (without restriction on $eventData)  
+```php
+Wait::event($eventName)->forever();
+```
 
-#### Commands in workflow
+Waiting for an event, with a maximal duration (without restriction on $eventData)  
+```php
+Wait::event($eventName)->for($duration);
+```
+
+Waiting for an event, up to a date time (without restriction on $eventData)  
+```php
+Wait::event($eventName)->until($date);
+```
+
+Waiting for an event with data filter  
+```php
+Wait::event($eventName, [$key => $value])->forever();
+```
+
+Output of the wait event:
+```php
+[$name, $data] = Wait::event($eventName)->for($duration);
+```
+If the `Wait` terminates without event, then `$name` and `$data` will be `null`
+
+Later:
+- Waiting for multiple events (AND)  
+`Wait::event($event1Name)->andEvent($event2Name)->forever();`  
+return an array of [$eventName, $eventData] when done.  
+- `$eventName` could also be a regular expression (allowing logical "or").
+
+Note: due to on event section below, `$eventName` should be considered case insensitive. 
+
+### On event
+
+We propose to remove the `onEvent` method, as this implementations has some drawbacks
+- it's quite verbose as it always begins with a test of event's name
+- as it does not allow event auto-discovery, it may generates useless decision if an event is not implemented
+
+Workflows can now implement a method `on{EventName}` to decide what to do when receiving an event:
+
+```php
+public function on{EventName} ($eventData) {}
+```
+
+For example: `public function onInvoicePaid($data)` will be called only when receiving a `'invoicePaid'` event (case-insensitive). This allow also to ask a decision only if the listener is implemented.
+
+For 3rd party event `'service:event'` such as `'slack:message.im'` the corresponding method should be `onSlackMessageIm`.
+
+### Commands
 
 All commands syntax should be working inside a workflow. It implies that, inside a workflow, we should manage command idempotency.
 
 ## Executing API from a 3rd Party Service
 
+Here syntax is given in node.js.
 
 ### From an HTTP API
 
-With `const { execute, dispatch } = require("zenaton");`
+With `const { execute, schedule } = require("zenaton");`
 
 Sync request
 ```javascript
@@ -276,53 +345,56 @@ await execute.verb(url, body);
 
 Async request
 ```javascript
-await dispatch.verb(url, body);
+await schedule.verb(url, body);
 ```
 
 Examples:
 ```javascript
 await execute.post('https://slack.com/api/chat.postMessage', {...});
 
-await dispatch.post('https://slack.com/api/chat.postMessage', {...});
+await schedule.post('https://slack.com/api/chat.postMessage', {...});
 ```
 
 ### From a SDK
 
-With `const { execute, dispatch } = require("zenaton");`
+With `const { execute, schedule } = require("zenaton");`
 
 Sync request
 
 ```javascript
-await execute.task('service:method').width(...);
+await execute.task('service:method', $data);
 ```
 
 Async request
 
 ```javascript
-await dispatch.task('service:method').width(...);
+await schedule.task('service:method', $data);
 ```
 
 Examples:
 
 ```javascript
-await execute.task('aws.s3:getObject').width(...);
+await execute.task('aws.s3:getObject', $data);
 ```
 
 ```javascript
-await dispatch.task('aws.ses:SendRawEmail').width(...);
+await schedule.task('aws.ses:SendRawEmail', $data);
 ```
 
 ```javascript
-await execute.task('slack:web.chat.postMessage').width(...);
+await execute.task('slack:web.chat.postMessage', $data);
 ```
 
 ## Listening Events from a 3rd Party Service
+
+As events come from a third party, we should provide a way for workflows to 
+describe which event they listen.
 
 ### From inside a workflow
 
 #### Listening all events
 ```javascript
-await this.listen('service:');
+await this.listen('service');
 ```
 
 #### Listening a specific event
@@ -351,15 +423,14 @@ await execute
 #### Listening a specific event but only  related to an object created by a SDK
 
 ```javascript
-await execute.listen('service:event_name').task('service:method').with(...);
+await execute.listen('service:event_name').task('service:method', $data);
 ```
 
 Example:
 ```javascript
 await execute
         .listen('slack:reaction_added')
-        .task('slack:web.chat.postMessage')
-        .width(...);
+        .task('slack:web.chat.postMessage', $data);
 ```
 
 ### From outside a workflow
@@ -395,20 +466,20 @@ await wait.event('service:event_name', {email: 'foo@bar.com'}).forever();
 Post a message and remove any reaction to it for 1 hour:
 
 ```javascript
-const { Workflow, dispatch, execute, wait } = require("zenaton");
+const { Workflow, schedule, execute, wait } = require("zenaton");
 
 module.exports = Workflow("PostSlackMessageWithoutReaction", {
   async handle() {
-    await dispatch.listen('slack:reaction_added').post('https://slack.com/api/chat.postMessage', {
-        channel: 'C1234567890',
-        text: 'try to react ont this!)'
-    }).now();
+    await dispatch
+        .listen('slack:reaction_added')
+        .post('https://slack.com/api/chat.postMessage', {
+            channel: 'C1234567890',
+            text: 'try to react ont this!)'
+        });
     await wait.for(3600);
   },
-  onEvent(event, data) {
-    if (event === 'slack:reaction_added') {
+  onSlackReactionAdded(data) {
       await execute.post('https://slack.com/api/reactions.remove', {timestamp: data.timestamp});
-    }
   }
 })
 ```
