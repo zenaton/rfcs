@@ -351,19 +351,19 @@ await execute.verb(url, body);
 
 Async request
 ```javascript
-await schedule.verb(url, body);
+await dispatch.verb(url, body);
 ```
 
 Examples:
 ```javascript
 await execute.post('https://slack.com/api/chat.postMessage', {...});
 
-await schedule.post('https://slack.com/api/chat.postMessage', {...});
+await dispatch.post('https://slack.com/api/chat.postMessage', {...});
 ```
 
 ### From a SDK
 
-With `const { execute, schedule } = require("zenaton");`
+With `const { execute, dispatch } = require("zenaton");`
 
 Sync request
 
@@ -374,7 +374,7 @@ await execute.task('service:method', $data);
 Async request
 
 ```javascript
-await schedule.task('service:method', $data);
+await dispatch.task('service:method', $data);
 ```
 
 Examples:
@@ -384,7 +384,7 @@ await execute.task('aws.s3:getObject', $data);
 ```
 
 ```javascript
-await schedule.task('aws.ses:SendRawEmail', $data);
+await dispatch.task('aws.ses:SendRawEmail', $data);
 ```
 
 ```javascript
