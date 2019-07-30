@@ -10,185 +10,144 @@ Current syntax has issues:
   - delays
   - workflow state introspection 
 
-## Scheduling Tasks
+# Dispatching
 
-### Scheduling for immediate processing
+## Task or Workflow?
+
+We consider that - from the orchestrator point of view - there should be no way to know if a job will be processed as a task or as another (sub)workflow. That's why, the syntax should not make any distinction between both.
+
+Something to be done inside a workflow is always called a job. Zenaton will know if it's a task of a workflow only when the name will be resolved by an Agent (so it's not possible to have task and workflow with same name).
+
+We do not make any assumption neither on the language used, that's why only the name and the data are transfered. A good practice for the user should be to avoid language-specific data structure.
+
+** I BELIEVE THAT OUR CURRENT DEVELOPMENTS DO NOT ALLOW THIS ABOVE
+SO `job` BELOW SHOULD BE UNDERSTAND AS `task` or `workflow` UNDIFFERENTLY **
+
+## Dispatching for immediate processing
 
 ```php
-Schedule::task($name, Array $data = []);
+Dispatch::job($name, Array $data = []);
 ```
 
-`$name` is a string and `$data` is an array representing task's arguments (eg. `new $name(...$data)`, ie. `[]` means no argument, `[1,2]`means 2 arguments `1` and `2`). To simplify, we will just write `$data` below, instead of `Array $data = []`).
+`$name` is a string and `$data` is an array representing job's arguments (eg. `new $name(...$data)`, ie. `[]` means no argument, `[1,2]`means 2 arguments `1` and `2`). To simplify, we will just write `$data` below, instead of `Array $data = []`).
 
-### Scheduling delayed for a duration
+## Delayed Dispatching (duration)
 
 ```php
-Schedule::in($duration)->task($name, $data);
+Dispatch::in($duration)->job($name, $data);
 ```
 
 $duration is an integer (seconds). We may provide a `Duration` class, to allow syntax such as  `Duration::hours(2)->minutes(10)`.
 
-### Scheduling delayed until a date time 
+## Delayed Dispatching (date time)
 
 ```php
-Schedule::at($date)->task($name, $data);
+Dispatch::at($date)->job($name, $data);
 ```
 
 $date is an DateTime. We may provide a `Date` class, to allow
 syntax such as `Date::monday()->at('8:00')`.
 
-### Recurrent Scheduling  
+## Dispatch's Tagging
+
+When dispatching, we can assign one tag or more:
 
 ```php
-Schedule::repeat($cron)->task($name, $data);
+Dispatch::tag($tag)->job($name, $data);
 ```
 
-$cron is a cron expression. We may provide a `Each` class to allow
-syntax such as `Each::day()->at('8:00')`.
+`$tag` is a string, eg. `'id:1781b8c7'`. We may add multiples tags eg. `->tag($tag1, $tag2, $tag3)`.
 
-Reapeated task or workflow are a bit difficult to handle conceptually.
-Thinking them as always running workflows with task/sub-workflows may help. 
+Tags will be mainly use to target jobs to apply an instruction or request a status.
 
-## Scheduling Workflows
+Note: user does not have anymore the ability to provide an `id` - this is replaced by tags.
 
-Same syntax that tasks, except that we use `workflow` instead of `task`, for example:
+We could also offer the options to set default tags for a job:
 
 ```php
-Schedule::workflow($name, $data);
-
-Schedule::in($duration)->workflow($name, $data);
-
-Schedule::at($date)->workflow($name, $data);
-
-Schedule::repeat($cron)->workflow($name, $data);
+Dispatch::defaultTag($tag)->job($name);
 ```
 
-## Scheduling Options
+## Dispatch's Options
 
-Today, no option are provided, but when looking to similar service, we see that adding options to dispatching is unavoidable:
-- eg. `schedule_to_finished_timeout` 
+When looking to similar service, we see that adding options to dispatching is unavoidable, eg.
+- `dispatch_to_start_timeout`
+ 
+Theoritically, none of these options should be dependant of being a task or a workflow - if you find a conter-example - please tell me (Gilles).
+
+So,
+```php
+Dispatch::options($options)->...;
+```
+With (example) `$options = [Job::DispatchToStartTimeout => 300]`
+
+Later, we could offer the options to set default values for a job:
+
+```php
+Dispatch::defaultOptions($options)->job($name);
+```
+
+## Job Options
+Other options can be defined specifically in workflow ot task implementation.
+
+Example for workflows:
 - `child_policy` cf. https://docs.aws.amazon.com/amazonswf/latest/developerguide/swf-dev-adv-child-workflows.html
 
-Some of those options (such as `schedule_to_finished_timeout`) make sense even before the instruction reachs an Agent, this implies we should provide them at scheduling. 
+Example for tasks:
+- `maxProcessingTime`
 
-It can be useful (for backward compatibility or for more elegant syntax) to be able to define options inside task or workflow.
-
-The following rules will apply to determinate value of an option at scheduling:
-- the value provided at scheduling (if any) is used
-- if none and task/workflow implementation is known, then value provided in task/workflow (if any) is used
-- if none, then no value is used (default being managed by server)
-
-Note that some options (such as `maxProcessingTime`) will be used by the Agent only. For them also the value provided in task/workflow (if any) is used if no value was provided at scheduling => The Agent must not confond default value provided by server with value provided at scheduling (especially if task implementation in unknown at scheduling).
-
-For sake of simplicity (user point of view - not ours !), I suggest that all options can be define at scheduling AND within task or workflow with a common syntax.
-
-```php
-Schedule::options($options)->...;
-```
-
-or inside task or workflow
-
+These options will be defined inside jobs by
 ```php
 public function options()
 {
     return $options;
 }
 ``` 
+With:
+- (workflow example) `$options = [Workflow::ChildPolicy => "TERMINATE"]`
+- (task example) `$options = [Task::MaxProcessingTime => 600]` 
 
-With (example) `$options = [Task::MaxProcessingTime => 300]`
+## Dispatch's Output
 
-We could also offer the options to set default values:
-
-```php
-Schedule::defaultOptions($options)->...
-```
-
-## Scheduling's Output
-
-Any schedule will synchronously output a `Task` or `Workflow` object with:
-- name
+Any dispatch will synchronously output a `Job` object with:
 - id (provided by sdk)
-- args
+- name
+- data
 - tags
+- options
 - delay (default:0) // buffer ?
-- repeated (default:none)
 
 `id` (our `intent_id`) is the (unique) most interesting value, as user may store is for future usage. 
 
-## Scheduling's Tags
+## Selecting Jobs
 
-When scheduling , we can assign a tag:
+Different filters are provided to filter jobs:
 
-```php
-Schedule::tag($tag1, $tag2)->...;
-```
+- by Id   `Job::whereId($id)->...`  
+- by name `Job::whereName($name)->...`  
+- by tag: `Job::hasTag($tag)->...`  
 
-`$tag` is a string, eg. `'id:1781b8c7'`. We may add multiples tags, by repeating `tag` method.
+When applied, this targets a collection (containing 0 or more element)
 
-Note: user does not have anymore the ability to provide an `id` - this is replaced by tags.
+Notes:
+- `$name` could also be a regular expression.
+- `hasTag($tag1, $tag2)->...` operates as a logical AND operator
+- `$tag` could be a regular expression (allowing logical OR).
+- filters can be mixed, for example `Job::whereName($name)->hasTag($tag)` will select jobs by name and tag
 
-Note: when tagging a recurrent scheduling
-`Schedule::repeat($cron)->tag($tag)->...;`  
-the tag is applied to the recurrent scheduling, *not* the underlying instances.
+## Applying Commands On Jobs Selection
 
-## Selecting
-
-### By Id
-
-We can find a task or a workflow by its `id` (our `intent_id`)
-
-- select task by Id  
-    `Task::whereId($id)->...`  
-
-- select workflow by Id  
-    `Workflow::whereId($id)->...` 
-
-When applied, the output will be a collection (containing 0 or 1 element)
-Later `$id` could also be a regular expression.
-
-### By name
-
-We can select instances of tasks or workflows by name: 
-
-- select task by name  
-    `Task::whereName($name)->...`  
-
-- select workflow by name  
-    `Workflow::whereName($name)->...` 
-
-When applied, the output will be a collection (containing 0 or more element).
-Later `$name` could also be a regular expression.
-
-### By Tags
-
-We can select instances of tasks or workflows by tags: 
-
-- select task by tag: `Task::hasTag($tag)->...`  
-
-- select workflow by tag: `Workflow::hasTag($tag)->...`
-
-When applied, the output will be a collection (containing 0 or more element).
-
-Later, we could add 
-- a `andTag($tag)` method
-- the possibility for `$tag` to be a regular expression (allowing logical "or").
-
-### Combined
-
-Selection criteria can be mixed, for example selecting tasks by name and tag  
-    `Tasks::whereName($name)->hasTag($tag)`  
-
-## Commands
-
-On a selection of tasks or workflows, we can
+On a selection of jobs, we can
 - `id()` retrieve `id`s (our `intent_id`s)
+- `parent()` select parent (if exists) 
 - `history()` retrieve processing histories
 - `skip()` skip processing (makes sense only if a parent exists)
 
 From a task and workflow implementation:
 - `$this->id()` provides own `id` (our `schedule_id`)
+- `$this->parent()` select parent (if exists)
 - `$this->history()` retrieve own history
-- `$this->skip()` skip own processing (useful only for tasks or workflows within workflows)
+- `$this->skip()` skip own processing (useful only for jobs within workflows)
 
 On selection of workflows only:
 - `pause()` pause selected instances
@@ -215,29 +174,33 @@ On a selection of tasks or workflows, we can retrieve processing history, eg.
 
 As a user, we can use this to display a status of processing.
 
-## Inside a workflow
+# Inside a workflow
 
-### Scheduling 
+## Commands
+
+All commands syntax should be working inside a workflow. It implies that, inside a workflow, we should manage commands idempotency.
+
+## Dispatching
+
+All dispatching syntax should be working inside a workflow. It implies that, inside a workflow, we should manage dispatching idempotency.
+
+## Scheduling
 
 All scheduling syntax should be working inside a workflow. It implies that, inside a workflow, we should manage scheduling idempotency.
 
-### Executing
+## Executing
 
 For "executing" jobs, ie. by waiting the output to continue workflow execution, we do:
 
 ```php
-Execute::task($name, $data);
+Execute::job($name, $data);
 ```
 
-and for (sub-)workflow:
+- there is no way to delay or repeat an execution.
+- *tags* can be used, with same syntax than for dispatching.
+- *options* can be used, with same syntax than for dispatching.
 
-```php
-Execute::workflow($name, $data);
-```
-
-There is no way to delay or repeat an execution. But *tags* or *options* can be used, with same syntax than for scheduling.
-
-### Waiting
+## Time Waiting
 
 Waiting forever
 
@@ -261,10 +224,10 @@ Note 1: with above syntax, the return value is always `null`.
 
 Note 2: `$duration` and `$date` are the same as used for delayed tasks. 
 
-### Events
+## Events
 
 Events are explicitly *sent* to workflows: 
-- for a choregraphy, or *event-driven architecture*, they can be sent to all workflows:
+- for a choregraphy, they can be sent to all workflows:
 `Workflow::send($eventName, $eventData)`. 
 - for an orchestration, they can be sent to a specific workflow:
 `Workflow::whereId($id)->send($eventName, $eventData)`.
@@ -274,7 +237,7 @@ Within a workflow, receiving an event `$eventName` will:
 2) trigger execution of an `on{$eventName}` method, if it exists
 3) do nothing if not 1) or 2)
 
-#### Waiting for an event
+### Waiting for an event
 
 Waiting for an event without time limitation (without restriction on $eventData)  
 ```php
@@ -291,44 +254,87 @@ Waiting for an event, up to a date time (without restriction on $eventData)
 Wait::event($eventName)->until($date);
 ```
 
-Waiting for an event with data filter  
+Waiting multiple events (AND)
 ```php
-Wait::event($eventName, [$key => $value])->forever();
+Wait::event($event1Name, $event2Name, ...)->forever();
 ```
 
 Output of the wait event:
 ```php
-[$name, $data] = Wait::event($eventName)->for($duration);
+[$eventName, $eventData] = Wait::event($eventName)->for($duration);
+
+[[$event1Name, $event1data], [$event2Name, $event2data]] = Wait::event($event1Name, $event2Name)->for($duration);
 ```
+
 If the `Wait` terminates without event, then `$name` and `$data` will be `null`
 
-Later:
-- Waiting for multiple events (AND)  
-`Wait::event($event1Name)->andEvent($event2Name)->forever();`  
-return an array of [$eventName, $eventData] when done.  
-- `$eventName` could also be a regular expression (allowing logical "or").
+Later we could introduce an `EventFilter` class such as `Wait::event($eventFilter)` to more specialized filter such as OR operand on name,or filter on data.
 
-Note: due to on event section below, `$eventName` should be considered case insensitive. 
+### Reacting on Event
 
-### On event
+We propose to deprecate the `onEvent` method, as this implementations has some drawbacks
 
-We propose to remove the `onEvent` method, as this implementations has some drawbacks
 - it's quite verbose as it always begins with a test of event's name
 - as it does not allow event auto-discovery, it may generates useless decision if an event is not implemented
 
 Workflows can now implement a method `on{EventName}` to decide what to do when receiving an event:
 
 ```php
-public function on{EventName} ($eventData) {}
+public function on{EventName} ($eventName, $eventData) {}
+````
+
+For example: `public function onInvoicePaid('invoicePaid', $data)` will be called only when receiving a 'invoicePaid' event. It is more readable and allows also to ask a decision only when the listener is implemented.
+
+## Dispatched job management
+
+### Waiting for job completion
+
+We propose to introduce a new feature inspired from Durable Functions from Azure.
+
+As discussed below, this new feature allow a more natural implementation of parallel processings. With
+
+```php
+$job = Dispatch::job($name, $data);
+```
+then
+```php
+$output = Wait::completion($job)->forever();
+```
+will go through only when `$job` processing is succesfully completed. 
+
+### Parallel processings
+Waiting for a parallel completion becomes:
+```php
+$job1 = Dispatch::job($name1, $data1);
+$job2 = Dispatch::job($name2, $data2);
+$job3 = Dispatch::job($name3, $data3);
+
+[$output1, $output2, $output3] = Wait::completion($job1, $job2, $job3)->forever();
 ```
 
-For example: `public function onInvoicePaid($data)` will be called only when receiving a `'invoicePaid'` event (case-insensitive). This allow also to ask a decision only if the listener is implemented.
+### Reacting on Completion
 
-For 3rd party event `'service:event'` such as `'slack:message.im'` the corresponding method should be `onSlackMessageIm`.
+We propose to deprecate the `onSuccess` method, as this implementations has same drawbacks than `onEvent`.
 
-### Commands
+Workflows can now implement a method `on{jobName}Completion($job)` to decide what to do when a job is completed:
 
-All commands syntax should be working inside a workflow. It implies that, inside a workflow, we should manage command idempotency.
+```php
+public function on{JobName}Completion ($job) {}
+```
+
+For example: `public function onPayInvoiceCompletion($job)` will be called only when a `payInvoice` job is completed. `$job` will be an object containing all information relative to $job processing including the output.
+
+### Reacting on Failure
+
+We propose to deprecate the `onFailure` method, as this implementations has same drawbacks than `onEvent`.
+
+Workflows can now implement a method `on{jobName}Failure($job)` to decide what to do when a job is failed:
+
+```php
+public function on{JobName}Failure ($job) {}
+````
+
+For example: `public function onPayInvoiceFailure($job)` will be called only when a `payInvoice` job is failed (after automatic retry). `$job` will be an object containing all information relative to $job processing including the error.
 
 ## Executing API from a 3rd Party Service
 
@@ -420,7 +426,7 @@ await execute
         .post('https://slack.com/api/chat.postMessage', body);
 ```
 
-#### Listening a specific event but only  related to an object created by a SDK
+#### Listening a specific event but only related to an object created by a SDK
 
 ```javascript
 await execute.listen('service:event_name').task('service:method', $data);
@@ -483,3 +489,56 @@ module.exports = Workflow("PostSlackMessageWithoutReaction", {
   }
 })
 ```
+
+
+# Scheduling
+
+### Syntax
+
+We use the word scheduling for a request of reccurent dispatching:
+
+```php
+Schedule::each($cron)->job($name, $data);
+```
+$cron is a cron expression. We may provide a `Each` class to allow
+syntax such as `Each::day()->at('8:00')`.
+
+### Schedule's tags
+
+Tags can be provided and will be applied to future dispatched jobs.
+
+### Schedule's options
+
+Options can be provided and will be applied to future dispatched jobs.
+
+### Schedule's delay
+
+Not possible yet.
+
+### Schedule's Output
+
+Any scheduling will synchronously output a `Schedule` object with:
+- id (provided by sdk)
+- name
+- data
+- tags
+- options
+- active (default:true)
+
+`id` (our `intent_id`) is the (unique) most interesting value, as user may store is for future usage. 
+
+### Schedule's Selecting 
+
+Different filters can be applied and mixed:
+- `Schedule::whereName($name)->`
+- `Schedule::hasTag($name)->`
+- `Schedule::whereId($id)->`
+- `Schedule::isActive(true)->`
+
+
+### Schedule's Commands
+
+- `->cancel()`
+- `->pause()` (active = false)
+- `->resume()` (active = true)
+- `->get()`
