@@ -3,16 +3,15 @@
 ## Problem
 
 Current syntax has issues:
+
 - only adapted to monolith (Laravel-inspired), where code is the same on all servers
 - internal properties are included in modification checks, leading to false positive `ModifiedDeciderException`
-- do not include new features such as 
+- do not include new features such as
   - scheduling
   - delays
-  - workflow state introspection 
+  - workflow state introspection
 
-# Dispatching
-
-## Task or Workflow?
+# Task or Workflow?
 
 We consider that - from the orchestrator point of view - there should be no way to know if a job will be processed as a task or as another (sub)workflow. That's why, the syntax should not make any distinction between both.
 
@@ -22,6 +21,8 @@ We do not make any assumption neither on the language used, that's why only the 
 
 ** I BELIEVE THAT OUR CURRENT DEVELOPMENTS DO NOT ALLOW THIS ABOVE
 SO `job` BELOW SHOULD BE UNDERSTAND AS `task` or `workflow` UNDIFFERENTLY **
+
+# Dispatching Task or Workflow
 
 ## Dispatching for immediate processing
 
@@ -33,11 +34,13 @@ Dispatch::job($name, Array $data = []);
 
 ## Delayed Dispatching (duration)
 
+Workflow(\$name)->in()->dispatch(..)
+
 ```php
 Dispatch::in($duration)->job($name, $data);
 ```
 
-$duration is an integer (seconds). We may provide a `Duration` class, to allow syntax such as  `Duration::hours(2)->minutes(10)`.
+\$duration is an integer (seconds). We may provide a `Duration` class, to allow syntax such as `Duration::hours(2)->minutes(10)`.
 
 ## Delayed Dispatching (date time)
 
@@ -45,7 +48,7 @@ $duration is an integer (seconds). We may provide a `Duration` class, to allow s
 Dispatch::at($date)->job($name, $data);
 ```
 
-$date is an DateTime. We may provide a `Date` class, to allow
+\$date is an DateTime. We may provide a `Date` class, to allow
 syntax such as `Date::monday()->at('8:00')`.
 
 ## Dispatch's Tagging
@@ -71,14 +74,17 @@ Dispatch::defaultTag($tag)->job($name);
 ## Dispatch's Options
 
 When looking to similar service, we see that adding options to dispatching is unavoidable, eg.
+
 - `dispatch_to_start_timeout`
- 
+
 Theoritically, none of these options should be dependant of being a task or a workflow - if you find a conter-example - please tell me (Gilles).
 
 So,
+
 ```php
 Dispatch::options($options)->...;
 ```
+
 With (example) `$options = [Job::DispatchToStartTimeout => 300]`
 
 Later, we could offer the options to set default values for a job:
@@ -88,28 +94,35 @@ Dispatch::defaultOptions($options)->job($name);
 ```
 
 ## Job Options
+
 Other options can be defined specifically in workflow ot task implementation.
 
 Example for workflows:
+
 - `child_policy` cf. https://docs.aws.amazon.com/amazonswf/latest/developerguide/swf-dev-adv-child-workflows.html
 
 Example for tasks:
+
 - `maxProcessingTime`
 
 These options will be defined inside jobs by
+
 ```php
 public function options()
 {
     return $options;
 }
-``` 
+```
+
 With:
+
 - (workflow example) `$options = [Workflow::ChildPolicy => "TERMINATE"]`
-- (task example) `$options = [Task::MaxProcessingTime => 600]` 
+- (task example) `$options = [Task::MaxProcessingTime => 600]`
 
 ## Dispatch's Output
 
 Any dispatch will synchronously output a `Job` object with:
+
 - id (provided by sdk)
 - name
 - data
@@ -117,19 +130,22 @@ Any dispatch will synchronously output a `Job` object with:
 - options
 - delay (default:0) // buffer ?
 
-`id` (our `intent_id`) is the (unique) most interesting value, as user may store is for future usage. 
+`id` (our `intent_id`) is the (unique) most interesting value, as user may store is for future usage.
 
-## Selecting Jobs
+# Commands
+
+## Jobs Selection
 
 Different filters are provided to filter jobs:
 
-- by Id   `Job::whereId($id)->...`  
-- by name `Job::whereName($name)->...`  
-- by tag: `Job::hasTag($tag)->...`  
+- by Id `Job::whereId($id)->...`
+- by name `Job::whereName($name)->...`
+- by tag: `Job::hasTag($tag)->...`
 
 When applied, this targets a collection (containing 0 or more element)
 
 Notes:
+
 - `$name` could also be a regular expression.
 - `hasTag($tag1, $tag2)->...` operates as a logical AND operator
 - `$tag` could be a regular expression (allowing logical OR).
@@ -138,39 +154,53 @@ Notes:
 ## Applying Commands On Jobs Selection
 
 On a selection of jobs, we can
-- `id()` retrieve `id`s (our `intent_id`s)
-- `parent()` select parent (if exists) 
-- `history()` retrieve processing histories
-- `skip()` skip processing (makes sense only if a parent exists)
 
-From a task and workflow implementation:
-- `$this->id()` provides own `id` (our `schedule_id`)
-- `$this->parent()` select parent (if exists)
-- `$this->history()` retrieve own history
-- `$this->skip()` skip own processing (useful only for jobs within workflows)
+- `->id()` retrieve `id`s (our `intent_id`s)
+- `->parent()` selection targeting parents
+- `->history()` retrieve histories
+- `->skip()` skip (make sense only when a parent exists)
 
 On selection of workflows only:
-- `pause()` pause selected instances
-- `resume()` resume selected instances
-- `terminate()` terminate selected instances
-- `send($eventName, $eventData)` send event to selected instances
 
-From a workflow implementation:
+- `->pause()` pause selected instances
+- `->resume()` resume selected instances
+- `->terminate()` terminate selected instances
+
+Note, from inside a task and workflow the same syntax should be possible, applied to itself:
+
+- `$this->id()` provides own `id` (our `intent_id`)
+- `$this->parent()` selection targeting parent
+- `$this->history()` retrieve own history
+- `$this->skip()` skip (make sense only when a parent exists)
+
+Note, from inside workflow the same syntax should be possible, applied to itself:
+
 - `$this->pause()` pause itself
 - `$this->resume()` resume itself (useless?)
 - `$this->terminate()` terminate itself
-- `$this->send($eventName, $eventData)` send event to itself 
+
+## Sending Events on Jobs Selection
+
+Events are explicitly _sent_ to workflows:
+
+- for a choregraphy, they can be sent to all workflows:
+  `Workflow::send($eventName, $eventData)`.
+- for an orchestration, they can be sent to a specific workflow:
+  `Workflow::whereId($id)->send($eventName, $eventData)`.
+
+Note, from inside workflow the same syntax should be possible, applied to itself: `$this->send($eventName, $eventData)` send event to itself
 
 ### History command (Tasks and Workflows)
 
-On a selection of tasks or workflows, we can retrieve processing history, eg.  
-- name  
-- id  
-- args  
-- tags  
-- delay (default:0)  
+On a selection of tasks or workflows, we can retrieve processing history, eg.
+
+- name
+- id
+- args
+- tags
+- delay (default:0)
 - repeated (default:none)
-- *history*
+- _history_
 
 As a user, we can use this to display a status of processing.
 
@@ -197,8 +227,8 @@ Execute::job($name, $data);
 ```
 
 - there is no way to delay or repeat an execution.
-- *tags* can be used, with same syntax than for dispatching.
-- *options* can be used, with same syntax than for dispatching.
+- _tags_ can be used, with same syntax than for dispatching.
+- _options_ can be used, with same syntax than for dispatching.
 
 ## Time Waiting
 
@@ -208,13 +238,13 @@ Waiting forever
 Wait::forever();
 ```
 
-Waiting for a duration  
+Waiting for a duration
 
 ```php
 Wait::for($duration);
 ```
 
-Waiting for a datetime  
+Waiting for a datetime
 
 ```php
 Wait::until($date);
@@ -222,44 +252,44 @@ Wait::until($date);
 
 Note 1: with above syntax, the return value is always `null`.
 
-Note 2: `$duration` and `$date` are the same as used for delayed tasks. 
+Note 2: `$duration` and `$date` are the same as used for delayed tasks.
 
 ## Events
 
-Events are explicitly *sent* to workflows: 
-- for a choregraphy, they can be sent to all workflows:
-`Workflow::send($eventName, $eventData)`. 
-- for an orchestration, they can be sent to a specific workflow:
-`Workflow::whereId($id)->send($eventName, $eventData)`.
-
 Within a workflow, receiving an event `$eventName` will:
-1) trigger exit of an ongoing `Wait` instruction specific to this event
-2) trigger execution of an `on{$eventName}` method, if it exists
-3) do nothing if not 1) or 2)
+
+1. trigger exit of an ongoing `Wait` instruction specific to this event
+2. trigger execution of an `on{$eventName}` method, if it exists
+3. do nothing if not 1) or 2)
 
 ### Waiting for an event
 
-Waiting for an event without time limitation (without restriction on $eventData)  
+Waiting for an event without time limitation (without restriction on \$eventData)
+
 ```php
 Wait::event($eventName)->forever();
 ```
 
-Waiting for an event, with a maximal duration (without restriction on $eventData)  
+Waiting for an event, with a maximal duration (without restriction on \$eventData)
+
 ```php
 Wait::event($eventName)->for($duration);
 ```
 
-Waiting for an event, up to a date time (without restriction on $eventData)  
+Waiting for an event, up to a date time (without restriction on \$eventData)
+
 ```php
 Wait::event($eventName)->until($date);
 ```
 
 Waiting multiple events (AND)
+
 ```php
 Wait::event($event1Name, $event2Name, ...)->forever();
 ```
 
 Output of the wait event:
+
 ```php
 [$eventName, $eventData] = Wait::event($eventName)->for($duration);
 
@@ -281,7 +311,7 @@ Workflows can now implement a method `on{EventName}` to decide what to do when r
 
 ```php
 public function on{EventName} ($eventName, $eventData) {}
-````
+```
 
 For example: `public function onInvoicePaid('invoicePaid', $data)` will be called only when receiving a 'invoicePaid' event. It is more readable and allows also to ask a decision only when the listener is implemented.
 
@@ -296,14 +326,19 @@ As discussed below, this new feature allow a more natural implementation of para
 ```php
 $job = Dispatch::job($name, $data);
 ```
+
 then
+
 ```php
 $output = Wait::completion($job)->forever();
 ```
-will go through only when `$job` processing is succesfully completed. 
+
+will go through only when `$job` processing is succesfully completed.
 
 ### Parallel processings
+
 Waiting for a parallel completion becomes:
+
 ```php
 $job1 = Dispatch::job($name1, $data1);
 $job2 = Dispatch::job($name2, $data2);
@@ -322,7 +357,7 @@ Workflows can now implement a method `on{jobName}Completion($job)` to decide wha
 public function on{JobName}Completion ($job) {}
 ```
 
-For example: `public function onPayInvoiceCompletion($job)` will be called only when a `payInvoice` job is completed. `$job` will be an object containing all information relative to $job processing including the output.
+For example: `public function onPayInvoiceCompletion($job)` will be called only when a `payInvoice` job is completed. `$job` will be an object containing all information relative to \$job processing including the output.
 
 ### Reacting on Failure
 
@@ -332,9 +367,9 @@ Workflows can now implement a method `on{jobName}Failure($job)` to decide what t
 
 ```php
 public function on{JobName}Failure ($job) {}
-````
+```
 
-For example: `public function onPayInvoiceFailure($job)` will be called only when a `payInvoice` job is failed (after automatic retry). `$job` will be an object containing all information relative to $job processing including the error.
+For example: `public function onPayInvoiceFailure($job)` will be called only when a `payInvoice` job is failed (after automatic retry). `$job` will be an object containing all information relative to \$job processing including the error.
 
 ## Executing API from a 3rd Party Service
 
@@ -345,16 +380,19 @@ Here syntax is given in node.js.
 With `const { execute, schedule } = require("zenaton");`
 
 Sync request
+
 ```javascript
 await execute.verb(url, body);
 ```
 
 Async request
+
 ```javascript
 await dispatch.verb(url, body);
 ```
 
 Examples:
+
 ```javascript
 await execute.post('https://slack.com/api/chat.postMessage', {...});
 
@@ -368,84 +406,92 @@ With `const { execute, dispatch } = require("zenaton");`
 Sync request
 
 ```javascript
-await execute.task('service:method', $data);
+await execute.task("service:method", $data);
 ```
 
 Async request
 
 ```javascript
-await dispatch.task('service:method', $data);
+await dispatch.task("service:method", $data);
 ```
 
 Examples:
 
 ```javascript
-await execute.task('aws.s3:getObject', $data);
+await execute.task("aws.s3:getObject", $data);
 ```
 
 ```javascript
-await dispatch.task('aws.ses:SendRawEmail', $data);
+await dispatch.task("aws.ses:SendRawEmail", $data);
 ```
 
 ```javascript
-await execute.task('slack:web.chat.postMessage', $data);
+await execute.task("slack:web.chat.postMessage", $data);
 ```
 
 ## Listening Events from a 3rd Party Service
 
-As events come from a third party, we should provide a way for workflows to 
+As events come from a third party, we should provide a way for workflows to
 describe which event they listen.
 
 ### From inside a workflow
 
 #### Listening all events
+
 ```javascript
-await this.listen('service');
+await this.listen("service");
 ```
 
 #### Listening a specific event
+
 ```javascript
-await this.listen('service:event_name');
+await this.listen("service:event_name");
 ```
 
 #### Listening a specific event with specific data
+
 ```javascript
-await this.listen('service:event_name', {email: 'foo@bar.com'});
+await this.listen("service:event_name", { email: "foo@bar.com" });
 ```
 
 #### Listening a specific event but only related to an object created by a HTTP API
 
 ```javascript
-await execute.listen('service:event_name').post(url, body);
+await execute.listen("service:event_name").post(url, body);
 ```
 
 Example:
+
 ```javascript
 await execute
-        .listen('slack:reaction_added')
-        .post('https://slack.com/api/chat.postMessage', body);
+  .listen("slack:reaction_added")
+  .post("https://slack.com/api/chat.postMessage", body);
 ```
 
 #### Listening a specific event but only related to an object created by a SDK
 
 ```javascript
-await execute.listen('service:event_name').task('service:method', $data);
+await execute.listen("service:event_name").task("service:method", $data);
 ```
 
 Example:
+
 ```javascript
 await execute
-        .listen('slack:reaction_added')
-        .task('slack:web.chat.postMessage', $data);
+  .listen("slack:reaction_added")
+  .task("slack:web.chat.postMessage", $data);
 ```
 
 ### From outside a workflow
 
 Same syntax, but begining with a selection, eg.
+
 ```javascript
-await Workflow.whereName('Retention').listen('service:');
-await Workflow.whereName('Retention').listen('service:event_name');
-await Workflow.whereName('Retention').listen('service:event_name', {email: 'foo@bar.com'});
+await Workflow("Retention").listen("service:");
+await Workflow("Retention").listen("service:event_name");
+await Workflow("Retention").listen("service:event_name", {
+  email: "foo@bar.com"
+});
 ```
 
 ## Waiting Events from a 3rd Party Service
@@ -453,18 +499,21 @@ await Workflow.whereName('Retention').listen('service:event_name', {email: 'foo@
 With `const { wait } = require("zenaton");`
 
 Waiting all events
+
 ```javascript
-await wait.event('service:').forever();
+await wait.event("service:").forever();
 ```
 
 Waiting a specific event
+
 ```javascript
-await wait.event('service:event_name').forever();
+await wait.event("service:event_name").forever();
 ```
 
 Waiting a specific event with specific data
+
 ```javascript
-await wait.event('service:event_name', {email: 'foo@bar.com'}).forever();
+await wait.event("service:event_name", { email: "foo@bar.com" }).forever();
 ```
 
 ## Example
@@ -490,7 +539,6 @@ module.exports = Workflow("PostSlackMessageWithoutReaction", {
 })
 ```
 
-
 # Scheduling
 
 ### Syntax
@@ -500,7 +548,8 @@ We use the word scheduling for a request of reccurent dispatching:
 ```php
 Schedule::each($cron)->job($name, $data);
 ```
-$cron is a cron expression. We may provide a `Each` class to allow
+
+\$cron is a cron expression. We may provide a `Each` class to allow
 syntax such as `Each::day()->at('8:00')`.
 
 ### Schedule's tags
@@ -518,6 +567,7 @@ Not possible yet.
 ### Schedule's Output
 
 Any scheduling will synchronously output a `Schedule` object with:
+
 - id (provided by sdk)
 - name
 - data
@@ -525,16 +575,16 @@ Any scheduling will synchronously output a `Schedule` object with:
 - options
 - active (default:true)
 
-`id` (our `intent_id`) is the (unique) most interesting value, as user may store is for future usage. 
+`id` (our `intent_id`) is the (unique) most interesting value, as user may store is for future usage.
 
-### Schedule's Selecting 
+### Schedule's Selecting
 
 Different filters can be applied and mixed:
+
 - `Schedule::whereName($name)->`
 - `Schedule::hasTag($name)->`
 - `Schedule::whereId($id)->`
 - `Schedule::isActive(true)->`
-
 
 ### Schedule's Commands
 
