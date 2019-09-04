@@ -120,9 +120,9 @@ Any dispatch will synchronously output a `TaskContext`, `WorkflowContext` object
 - `appEnv`
 - `at` (initial client.dispatch timestamp - provided by server)
 
-Status for task: `dispatched`, `queued`, `processing`, `failed`, `completed`, `skipped`
+Possible status for task: `dispatched`, `queued`, `processing`, `failed`, `completed`, `skipped`
 
-Status for workflow: `dispatched`, `running`, `paused`, `failed`, `completed`, `skipped`
+Possible status for workflow: `dispatched`, `running`, `paused`, `failed`, `completed`, `skipped`
 
 ## Commands on Tasks or Workflows
 
@@ -328,6 +328,17 @@ this.terminate();
 ```
 
 will immediatly terminate this workflow.
+
+## Helpers
+
+Due to constraints applied to workflows, it's not possible to use function with side effects. As helpers, we proposed most common functions that can be used:
+
+- `this.now()` will behave as a usable `Date.now()`
+- `this.random()`will behave as a usable `Math.random()`
+- `this.console.log` will behave as a usable `console.log` function
+- `this.console.dir` will behave as a usable `console.dir` function
+- `this.console.error` will behave as a usable `console.error` function
+- `this.console.table` will behave as a usable `console.table` function
 
 ## Dispatching
 
