@@ -102,12 +102,21 @@ Example: `options = { dispatchToStartTimeout: 300 }`
 
 ### Dispatch's Output
 
-Any dispatch will synchronously output a `TaskContext`, `WorkflowContext` object - see below
+Any dispatch will synchronously output a `TaskContext`, `WorkflowContext` object
+with status `dispatched` - see below
 
 ### TaskContext
 
+An updated version of TaskContext is obtained:
+
+- when dispatching a task
+- when retrieving a task (eg. `client.select.task().withId(id).find())
+- in `this.context`when processing a task
+
+Format:
+
 - `id` (provided by sdk) (our intent id)
-- `task`{ name, version, input}
+- `task` { name, version, input}
   - `name` (canonical name) cf. versioning below
   - `version` (default: 0) - integer representing version
   - `input` (default: []) - array representing input
@@ -118,6 +127,7 @@ Any dispatch will synchronously output a `TaskContext`, `WorkflowContext` object
   - `options` (default: [])
 - `createdAt` (initial client.dispatch timestamp)
 - `status`
+- `retryIndex` (optional) - current retry index when processing
 - `output` (optional)
 - `history` (optional)
 - `appId`
@@ -127,8 +137,16 @@ Possible status for task: `dispatched`, `queued`, `processing`, `failed`, `compl
 
 ### WorkflowContext
 
+An updated version of WorkflowContext is obtained:
+
+- when dispatching a workflow
+- when retrieving a workflow (eg. `client.select.workflow().withId(id).find())
+- in `this.context`when processing a workflow
+
+Format:
+
 - `id` (provided by sdk) (our intent id)
-- `workflow`{ name, version, input}
+- `workflow` { name, version, input}
   - `name` (canonical name) cf. versioning below
   - `version` (default: 0) - integer representing version
   - `input` (default: []) - array representing input
@@ -139,8 +157,8 @@ Possible status for task: `dispatched`, `queued`, `processing`, `failed`, `compl
   - `options` (default: [])
 - `createdAt` (initial client.dispatch timestamp)
 - `status`
-- `properties` (current properties defined by user)
 - `output` (optional)
+- `properties` (current workflow properties)
 - `history` (optional)
 - `appId`
 - `appEnv`
@@ -216,7 +234,16 @@ There are specific options related to scheduling, for example to indicate if we 
 
 ### Schedule's Output
 
-Any schedule will synchronously output a `ScheduleContext` object with:
+Any schedule will synchronously output a `ScheduleContext` object with `status` equals `running` (see below)
+
+### ScheduleContext
+
+An updated version of WorkflowContext is obtained:
+
+- when scheduling a task or a workflow
+- when retrieving a schedule (eg. `client.select.schedule.workflow().withId(id).find())`)
+
+Format:
 
 - `id` (provided by sdk) (our intent id)
 - `workflow` or `task` { name, version, input}
@@ -229,6 +256,7 @@ Any schedule will synchronously output a `ScheduleContext` object with:
   - `options` (default: [])
 - `createdAt` (initial client.schedule timestamp)
 - `status`
+- `history`(optional)
 - `appId`
 - `appEnv`
 
@@ -321,6 +349,14 @@ When dispatching a task inside a worklow, both syntax with or without version ca
 - `this.dispatch.workflow('myworkflow_v3', input)` will use version `3``
 
 Same for selecting workflows. Versioning workflow is needed as soon as you have different version running concurrently.
+
+## Properties
+
+In the function describing the function, the user can set properties (for example `this.email = email`);
+This can be useful as those properties are provided in current `WorkflowContext` and so can be inspected from outside.
+
+The only restriction for naming those properties is to avoid naming collision with methods
+provided by Zenaton (`execute`, `select`, `dispatch`, `onEvent`, `now`, ...).
 
 ## Commands
 
