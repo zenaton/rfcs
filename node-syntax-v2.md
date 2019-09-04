@@ -1,17 +1,30 @@
 # Node.js Syntax v2
 
-Current syntax has drawbacks:
-
-- _only adapted to monolith_, where code is the same on all servers
-- internal properties are included in modification checks, leading to false positives `ModifiedDeciderException`
-- parallel processings and events management are currently somehow inefficient
-- impossible to mix programming languages
-- does not include new features such as
-  - workflow state introspection
-  - multiple clients
-  - 3rd party APIs usage
-
 Our proposed syntax attempts to be very complete to avoid any more changes in the future. Not all features will be implemented initially.
+
+# Why this proposal?
+
+this syntax, by ensuring a complete separation between workflow and task implementation - that can now even been implemented in different programming languages:
+
+- will be usable in the context of a microservice architecture (complete separation between workflow and task implementation and even programming languages)
+- will be usable in a serverless context (same reason than above)
+- will allow us to host ourselves decisions (later) and ultimately to propose much lighter agent (maybe no agent at all in some cases)
+- will fix a systemic current issue leading to false positive `ModifiedDeciderException`
+
+Also, it will fix some systemic defaults and
+
+- will allow to use multiple client (allowing communication between different applications / environments)
+- will prevent you to misuse the library (for example by trying to wait in a task)
+- will allow you to handle large number of parallel processings
+- will increase efficiency of event management by reducing number of useless decisions.
+
+At last, we want to introduce new features and support new syntax aiming at reducing scafolding:
+
+- sending an event or dispatching a workflow from another workflow
+- add helpers to access
+- terminate a workflow from anywhere
+- execute a sub-workflow like it was a task
+- and many more.
 
 ## Task or Workflow?
 
