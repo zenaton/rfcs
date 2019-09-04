@@ -47,7 +47,7 @@ client = new Client(appId, apiToken, appEnv, (name = ""));
 An instance can be retrieved individualy by name:
 
 ```javascript
-client = Client.get((name = ""));
+client = Client.get(name = "");
 ```
 
 or all clients:
@@ -66,7 +66,7 @@ Dispatching a Task or a Workflow is done through a client
 client.dispatch.job(name, ...input);
 ```
 
-`name` is a string and `data` is an array representing job's arguments (use equivalent to `new name(...data)`, ie. `[]` means no argument, `[1,2]`means 2 arguments `1` and `2`).
+`name` is a string and `data` is an array representing job's arguments (use equivalent to `new name(...data)`, ie. `[]` means no argument, `[1,2]`means 2 arguments `1` and `2`).
 
 ### Delayed Dispatching (duration)
 
@@ -339,7 +339,7 @@ const { workflow } = require("zenaton");
 
 workflow(
   name,
-  function(...input) {
+  async function(...input) {
     /* workflow definition */
   },
   options
@@ -358,8 +358,8 @@ A workflow definition follows a convention: `myworkflow_v3` will be understood a
 
 When dispatching a task inside a worklow, both syntax with or without version can be used:
 
-- `this.dispatch.workflow('myworkflow', input)` will use last known version
-- `this.dispatch.workflow('myworkflow_v3', input)` will use version `3``
+- `await this.dispatch.workflow('myworkflow', input)` will use last known version
+- `await this.dispatch.workflow('myworkflow_v3', input)` will use version `3``
 
 Same for selecting workflows. Versioning workflow is needed as soon as you have different version running concurrently.
 
@@ -395,7 +395,7 @@ this.send("completed");
 will send an event `"completed"` to itself.
 
 ```javascript
-this.terminate();
+await this.terminate();
 ```
 
 will immediatly terminate this workflow.
@@ -436,7 +436,7 @@ Inside a workflow `client` can be replaced by `this`. It means the command is ap
 For "executing" jobs, ie. by waiting for the output to continue workflow execution, we do:
 
 ```javascript
-this.execute.job(name, ...input);
+await this.execute.job(name, ...input);
 ```
 
 Notes:
@@ -450,19 +450,19 @@ Notes:
 Waiting forever
 
 ```javascript
-this.wait.forever();
+await this.wait.forever();
 ```
 
 Waiting for a duration
 
 ```javascript
-this.wait.for(duration);
+await this.wait.for(duration);
 ```
 
 Waiting for a datetime
 
 ```javascript
-this.wait.until(datetime);
+await this.wait.until(datetime);
 ```
 
 Notes:
@@ -485,31 +485,31 @@ Do nothing if not 1) neither 2)
 Waiting for an event without time limitation
 
 ```javascript
-this.wait.event(eventName).forever();
+await this.wait.event(eventName).forever();
 ```
 
 Waiting for an event, with a maximal duration
 
 ```javascript
-this.wait.event(eventName).for(duration);
+await this.wait.event(eventName).for(duration);
 ```
 
 Waiting for an event, up to a date time
 
 ```javascript
-this.wait.event(eventName).until(date);
+await this.wait.event(eventName).until(date);
 ```
 
 Waiting multiple events (AND)
 
 ```javascript
-this.wait.event(event1Name, event2Name, ...).forever();
+await this.wait.event(event1Name, event2Name, ...).forever();
 ```
 
 Waiting for an event with specific data
 
 ```javascript
-this.wait.event([eventName, eventDataFilter]).forever();
+await this.wait.event([eventName, eventDataFilter]).forever();
 ```
 
 Here `eventDataFilter` is an object containing criteria on `eventData`. For exemple `{ email: "gilles@zenaton.com"}` will wait only for events with `eventData.email === "gilles@zenaton.com"`.
@@ -517,7 +517,7 @@ Here `eventDataFilter` is an object containing criteria on `eventData`. For exem
 Output of the wait event:
 
 ```javascript
-eventData = this.wait.event(eventName).for(duration);
+eventData = await this.wait.event(eventName).for(duration);
 
 [event1data, event2data] = Wait.event(event1Name, event2Name).for(duration);
 ```
@@ -537,7 +537,7 @@ At any moment, an instance can subscribe to an event to decide what to do when r
 So at any moment inside the main function, a user can subscribe to an event:
 
 ```javascript
-await this.onEvent(eventName, function(...data) {
+this.onEvent(eventName, async function(...data) {
   // what I do after recieving this event.
 });
 ```
@@ -545,7 +545,7 @@ await this.onEvent(eventName, function(...data) {
 If a user wants to listen to an event with only specific data:
 
 ```javascript
-await this.onEvent([eventName, eventDataFilter], function(...data) {
+this.onEvent([eventName, eventDataFilter], async function(...data) {
   // what I do after recieving an event with name eventName, with right data
   // (eg. eventDataFilter {email: 'gilles@zenaton.com'} than eventData.email should be 'gilles@zenaton.com')
 });
@@ -566,7 +566,7 @@ job = this.dispatch.job(name, data);
 then
 
 ```javascript
-output = this.wait.completion(job).forever();
+output = await this.wait.completion(job).forever();
 ```
 
 will go through only when `job` processing is successfully completed.
@@ -578,7 +578,7 @@ job1 = this.dispatch.job(name1, data1);
 job2 = this.dispatch.job(name2, data2);
 job3 = this.dispatch.job(name3, data3);
 
-[output1, output2, output3] = this.wait.completion(job1, job2, job3).forever();
+[output1, output2, output3] = await this.wait.completion(job1, job2, job3).forever();
 ```
 
 Note: `output = this.wait.completion(job).minutes(5)` will wait for only 5 minutes. If `job` is not processed during that delay, output will be `null`.
@@ -594,7 +594,7 @@ await this.execute.verb(url, body, headers);
 or
 
 ```javascript
-await this.dispatch.verb(url, body, headers);
+this.dispatch.verb(url, body, headers);
 ```
 
 Examples:
@@ -602,7 +602,7 @@ Examples:
 ```javascript
 await this.execute.post('https://slack.com/api/chat.postMessage', {...}, { Content-type: 'application/json', Authorization });
 
-await this.dispatch.post('https://slack.com/api/chat.postMessage', {...}, { Content-type: 'application/json', Authorization });
+this.dispatch.post('https://slack.com/api/chat.postMessage', {...}, { Content-type: 'application/json', Authorization });
 ```
 
 ## Processing APIs from a 3rd Party Service
@@ -618,7 +618,7 @@ await this.execute.verb("service:method", data);
 or
 
 ```javascript
-await this.dispatch.verb("service:method", data);
+this.dispatch.verb("service:method", data);
 ```
 
 Examples:
@@ -642,14 +642,14 @@ await this.execute.task("service:method", data);
 or
 
 ```javascript
-await this.dispatch.task("service:method", data);
+this.dispatch.task("service:method", data);
 ```
 
 Examples:
 
 ```javascript
 await this.execute.task("aws.s3:getObject", data);
-await this.dispatch.task("aws.ses:SendRawEmail", data);
+this.dispatch.task("aws.ses:SendRawEmail", data);
 await this.execute.task("slack:web.chat.postMessage", data);
 ```
 
@@ -661,7 +661,7 @@ Events usually come from 3rd parties through webhooks. Zenaton handles those web
 them into events that a user can use without worrying about managing a server to receive webhooks.
 
 ```javascript
-await this.onEvent("service:eventName", func);
+this.onEvent("service:eventName", async func);
 ```
 
 Note: if a user has connected Zenaton to more than 1 service, they should provide a serviceId
@@ -669,7 +669,7 @@ Note: if a user has connected Zenaton to more than 1 service, they should provid
 If user wants to react to an event only if this event comes with specific data:
 
 ```javascript
-await this.onEvent([eventName, eventDataFilter], func);
+this.onEvent([eventName, eventDataFilter], async func);
 ```
 
 Example: `this.onEvent(['slack:reaction_added', {timestamp: 126342563}]` will react only on event with this specific timestamp.
@@ -694,7 +694,7 @@ module.exports = workflow("PostSlackMessageWithoutReaction", function() {
             channel: 'C1234567890',
             text: 'try to react ont this!)'
     });
-    this.onEvent(['slack:reaction_added', {timestamp: response.message.ts}], () => {
+    this.onEvent(['slack:reaction_added', {timestamp: response.message.ts}],  async () => {
             await this.execute.post('slack:reactions.remove', {timestamp: data.timestamp});
     })
     await this.wait.for(3600);
