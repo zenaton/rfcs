@@ -102,11 +102,12 @@ Example: `options = { dispatchToStartTimeout: 300 }`
 
 ### Dispatch's Output
 
-Any dispatch will synchronously output a `TaskContext`, `WorkflowContext` object with:
+Any dispatch will synchronously output a `TaskContext`, `WorkflowContext` object - see below
+
+### TaskContext
 
 - `id` (provided by sdk) (our intent id)
-- `target`{ type, name, version, input}
-  - `type` ('task' or 'workflow')
+- `task`{ name, version, input}
   - `name` (canonical name) cf. versioning below
   - `version` (default: 0) - integer representing version
   - `input` (default: []) - array representing input
@@ -115,12 +116,34 @@ Any dispatch will synchronously output a `TaskContext`, `WorkflowContext` object
   - `at` (default: undefined)
   - `tags` (default: [])
   - `options` (default: [])
+- `createdAt` (initial client.dispatch timestamp)
 - `status`
+- `output` (optional)
+- `history` (optional)
 - `appId`
 - `appEnv`
-- `at` (initial client.dispatch timestamp - provided by server)
 
 Possible status for task: `dispatched`, `queued`, `processing`, `failed`, `completed`, `skipped`
+
+### WorkflowContext
+
+- `id` (provided by sdk) (our intent id)
+- `workflow`{ name, version, input}
+  - `name` (canonical name) cf. versioning below
+  - `version` (default: 0) - integer representing version
+  - `input` (default: []) - array representing input
+- `dispatch` { in, at, tags, options }
+  - `in` (default: undefined)
+  - `at` (default: undefined)
+  - `tags` (default: [])
+  - `options` (default: [])
+- `createdAt` (initial client.dispatch timestamp)
+- `status`
+- `properties` (current properties defined by user)
+- `output` (optional)
+- `history` (optional)
+- `appId`
+- `appEnv`
 
 Possible status for workflow: `dispatched`, `running`, `paused`, `failed`, `completed`, `skipped`
 
@@ -142,7 +165,7 @@ Special methods can modified filters:
 
 Commands can be applied:
 
-- `.get()`: retrieve array of `TaskContext` or `WorkflowContext` (pagination to be defined as parameters)
+- `.get()`: retrieve array of `TaskContext` or `WorkflowContext` (pagination to be defined as parameters) (history is not provided for batch request)
 - `.find()`: retrieve first `TaskContext` or `WorkflowContext`
 
 On workflows only:
@@ -196,8 +219,7 @@ There are specific options related to scheduling, for example to indicate if we 
 Any schedule will synchronously output a `ScheduleContext` object with:
 
 - `id` (provided by sdk) (our intent id)
-- `target`{ name, version, input}
-  - `type` ('task' or 'workflow')
+- `workflow` or `task` { name, version, input}
   - `name` (canonical name) cf. versioning below
   - `version` (default: 0) - integer representing version
   - `input` (default: []) - array representing input
@@ -205,10 +227,10 @@ Any schedule will synchronously output a `ScheduleContext` object with:
   - `cron`
   - `tags` (default: [])
   - `options` (default: [])
+- `createdAt` (initial client.schedule timestamp)
 - `status`
 - `appId`
 - `appEnv`
-- `at` (initial client.schedule timestamp - provided by server)
 
 Status for schedules: `running`, `paused`
 
