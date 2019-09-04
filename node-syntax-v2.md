@@ -433,7 +433,7 @@ Inside a workflow `client` can be replaced by `this`. It means the command is ap
 
 ## Executing
 
-For "executing" jobs, ie. by waiting the output to continue workflow execution, we do:
+For "executing" jobs, ie. by waiting for the output to continue workflow execution, we do:
 
 ```javascript
 this.execute.job(name, ...input);
@@ -442,8 +442,8 @@ this.execute.job(name, ...input);
 Notes:
 
 - there is no way to delay or repeat an execution.
-- tags can be used, with same syntax than for dispatching.
-- options can be used, with same syntax than for dispatching.
+- tags can be used, with the same syntax as for dispatching.
+- options can be used, with the same syntax as for dispatching.
 
 ## Time Waiting
 
@@ -522,7 +522,7 @@ eventData = this.wait.event(eventName).for(duration);
 [event1data, event2data] = Wait.event(event1Name, event2Name).for(duration);
 ```
 
-If `this.wait` completes without event, then `eventData` will be `null`.
+If `this.wait` completes without an event, then `eventData` will be `null`.
 If `this.wait` completes with an event, then `eventData` can be `undefined` but never `null`.
 
 ### Reacting on Event
@@ -542,7 +542,7 @@ await this.onEvent(eventName, function(...data) {
 });
 ```
 
-If a user wants to listen event only with specific data:
+If a user wants to listen to an event with only specific data:
 
 ```javascript
 await this.onEvent([eventName, eventDataFilter], function(...data) {
@@ -553,9 +553,9 @@ await this.onEvent([eventName, eventDataFilter], function(...data) {
 
 ## Parallel
 
-We introduce a new way to manage parallel processing.
+We are introducing a new way to manage parallel processing.
 
-For that, we introduce a new way to wait for asynchronous jobs:
+For that, we are introducing a new way to wait for asynchronous jobs:
 
 If
 
@@ -605,9 +605,9 @@ await this.execute.post('https://slack.com/api/chat.postMessage', {...}, { Conte
 await this.dispatch.post('https://slack.com/api/chat.postMessage', {...}, { Content-type: 'application/json', Authorization });
 ```
 
-## Processing API from a 3rd Party Service
+## Processing APIs from a 3rd Party Service
 
-For 3rd party API supported by Zenaton (supporting authentification and webhooks as event), a special syntax would be provided
+For 3rd party APIs supported by Zenaton (supporting authentification and webhooks as event), a special syntax would be provided
 
 ### If 3rd party provides a Rest API
 
@@ -627,13 +627,13 @@ Examples:
 await this.execute.post("slack:web.chat.postMessage", data);
 ```
 
-Note: if user has connected Zenaton to more than 1 service, he should provided a serviceId
+Note: if a user has connected Zenaton to more than 1 service, they should provide a serviceId
 
 ```javascript
 await this.execute.verb("serviceId@service:method", data);
 ```
 
-### If 3rd party provides a full SDK
+### If a 3rd party provides a full SDK
 
 ```javascript
 await this.execute.task("service:method", data);
@@ -653,18 +653,18 @@ await this.dispatch.task("aws.ses:SendRawEmail", data);
 await this.execute.task("slack:web.chat.postMessage", data);
 ```
 
-As above, if user has connected Zenaton to more than 1 service, he should provided a serviceId
+As above, if a user has connected Zenaton to more than 1 service, they should provide a serviceId
 
 ## Reacting to events from a 3rd Party Service
 
-Events usually comes from 3rd parties through webhooks. Zenaton handles those webhooks and transforms
-them into events that a user can use without worrying to manage a server to receive webhooks.
+Events usually come from 3rd parties through webhooks. Zenaton handles those webhooks and transforms
+them into events that a user can use without worrying about managing a server to receive webhooks.
 
 ```javascript
 await this.onEvent("service:eventName", func);
 ```
 
-Note: if a user has connected Zenaton to more than 1 service, he should provided a serviceId
+Note: if a user has connected Zenaton to more than 1 service, they should provide a serviceId
 
 If user wants to react to an event only if this event comes with specific data:
 
