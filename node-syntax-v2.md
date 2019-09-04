@@ -293,14 +293,14 @@ const { task } = require("zenaton");
 
 task(
   name,
-  (...input) => {
-    // ...
+  function(...input) {
+    /* task definition */
   },
   options
 );
 ```
 
-`options`can be an object of a function of (...input) returning an object
+`options`can be an object or a function of (...input) returning an object
 
 Example : `{maxProcessingTime: 300}`
 
@@ -326,14 +326,14 @@ const { workflow } = require("zenaton");
 
 workflow(
   name,
-  (...input) => {
-    // workflow description
+  function(...input) {
+    /* workflow definition */
   },
   options
 );
 ```
 
-`options`can be an object of a function of (...input) returning an object
+`options`can be an object or a function of (...input) returning an object
 
 Example : `{childPolicy: 'terminate'}`
 
