@@ -21,7 +21,7 @@ Also, it will fix some systemic deficiencies and
 At last, we want to introduce new features and support new syntax aimed at reducing scafolding:
 
 - sending an event or dispatching a workflow from another workflow
-- add helpers to access
+- add helpers to access current date or pick random numbers
 - terminate a workflow from anywhere
 - execute a sub-workflow as if it was a task
 - and many more.
