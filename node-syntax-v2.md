@@ -149,7 +149,7 @@ On workflows only:
 
 - `.pause()` pause selected instances
 - `.resume()` resume selected instances
-- `.terminate()` terminate selected instances
+- `.terminate(output)` terminate selected instances
 - `.send(eventName, ...eventData)` send event to instances
 
 On tasks only:
@@ -304,13 +304,44 @@ Same for selecting workflows. Versioning workflow is needed as soon as you have 
 
 All commands syntax should be working inside a workflow. It implies that, inside a workflow, we should manage commands idempotency.
 
-Inside a workflow `client` can be replaced by `this`. It means the command is applied to current app/env.
+Inside a workflow `client` can be replaced by `this`. It means the command is applied to current app/env. For example :
+
+```javascript
+this.select
+  .workflow("processPayment")
+  .withId("244DR3")
+  .send("completed");
+```
+
+will be possible from inside a workflow. Also, commands that can be applied to a selection of workflow, can also be applied directly to `this`.
+
+For examples:
+
+```javascript
+this.send("completed");
+```
+
+will send an event `"completed"` to itself.
+
+```javascript
+this.terminate();
+```
+
+will immediatly terminate this workflow.
 
 ## Dispatching
 
 All dispatching syntax should be working inside a workflow. It implies that, inside a workflow, we should manage dispatching idempotency.
 
 Inside a workflow `client` can be replaced by `this`. It means the command is applied to current app/env.
+
+For example :
+
+```javascript
+this.dispatch.workflow("processPayment", { cart });
+```
+
+will now be possible inside a workflow to dispatch another workflow.
 
 ## Scheduling
 
@@ -392,6 +423,14 @@ Waiting multiple events (AND)
 ```javascript
 this.wait.event(event1Name, event2Name, ...).forever();
 ```
+
+Waiting for an event with specific data
+
+```javascript
+this.wait.event([eventName, eventDataFilter]).forever();
+```
+
+Here `eventDataFilter` is an object containing criteria on `eventData`. For exemple `{ email: "gilles@zenaton.com"}` will wait only for events with `eventData.email === "gilles@zenaton.com"`.
 
 Output of the wait event:
 
