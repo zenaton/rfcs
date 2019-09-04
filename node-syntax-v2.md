@@ -1,37 +1,37 @@
 # Node.js Syntax v2
 
-Current syntax has issues:
+Current syntax has drawbacks:
 
 - _only adapted to monolith_, where code is the same on all servers
-- internal properties are included in modification checks, leading to false positive `ModifiedDeciderException`
+- internal properties are included in modification checks, leading to false positives `ModifiedDeciderException`
 - parallel processings and events management are currently somehow inefficient
 - impossible to mix programming languages
-- do not include new features such as
+- does not include new features such as
   - workflow state introspection
   - multiple clients
   - 3rd party APIs usage
 
-The syntax proposed here try to be very complete to avoid any more changes in the future. Not all features will be implemented initially.
+Our proposed syntax attempts to be very complete to avoid any more changes in the future. Not all features will be implemented initially.
 
 ## Task or Workflow?
 
-We consider that - from the orchestrator point of view - there should be no way to know if a job will be processed as a task or as another (sub)workflow. That's why, the syntax should not make any distinction between both.
+We consider that - from the orchestrator point of view - there should be no way to know if a job will be processed as a task or as another (sub)workflow. That's why, the syntax should not make any distinction between them.
 
 Something to be done inside a workflow is always called a job. Zenaton will know if it's a task of a workflow only when the name will be resolved by an Agent (so it's not possible to have task and workflow with same name).
 
-We do not make any assumption neither on the language used, that's why only the name and the data are transfered. A good practice for the user should be to avoid language-specific data structure.
+We do not make any assumptions about the language used, that's why only the name and the data are transfered. A good practice for the user should be to avoid language-specific data structure.
 
 ** `job` BELOW SHOULD BE UNDERSTAND AS `task` or `workflow` UNDIFFERENTLY **
 
 # From Client
 
-Client are not singleton and can be instantiated and named.
+Clients are not singletons and can be instantiated and named.
 
 ```javascript
 client = new Client(appId, apiToken, appEnv, (name = ""));
 ```
 
-Instance can be retrieved individualy by name:
+An instance can be retrieved individualy by name:
 
 ```javascript
 client = Client.get((name = ""));
@@ -83,16 +83,16 @@ client.dispatch.tag(...tags).job(name, ...input);
 
 Users will use tags to target jobs in order to apply commands or request status.
 
-Note: user does not have anymore the ability to provide an `id` ("custom id") - this is replaced by tags.
+Note: the user no longer has the ability to provide an `id` ("custom id") - this is replaced by tags.
 
 ### Dispatch's Options
 
-When looking to similar service, we see that adding options to dispatching is unavoidable, eg.
+When looking at similar services, we see that adding options to dispatching is unavoidable, eg.
 
 - `dispatchToStartTimeout`
 - `dispatchToCompleteTimeout`
 
-Theoritically, none of these options should be dependant of being a task or a workflow - (if you find a counter-example - please tell Gilles).
+Theoritically, none of these options should be dependant on being a task or a workflow - (if you find a counter-example - please tell Gilles).
 
 ```javascript
 client.dispatch.options(...options). ...;
@@ -176,7 +176,7 @@ Job (task or workflow) selection is done through `client.select`.
 these filters can be chained:
 eg. `client.select.workflow('paymentProcess').withTag({email: 'foo@bar.com'})`
 
-Special methods can modified filters:
+Special methods can modify filters:
 
 - `.parent`: select parent of current selection (if any)
 - `.childs`: select childs of current selection
@@ -313,13 +313,13 @@ When dispatching a task inside a worklow, both syntax with or without version ca
 - `this.dispatch.task('mytask', input)` will use last known version
 - `this.dispatch.task('mytask_v3', input)` will use version `3``
 
-Versioning task can be useful when its signature evolve.
+Versioning tasks can be useful when its signature evolves.
 
 # Workflow
 
 ## Definition
 
-Worflow are defined by:
+Worflows are defined by:
 
 ```javascript
 const { workflow } = require("zenaton");
@@ -341,7 +341,7 @@ Note: `onEvent` is deprecated if favor of an explicit declaration inside the wor
 
 ## Workflow version
 
-Workflow definition follow a convention: `myworkflow_v3` will be understood as an implementation of `myworkflow` version `3`.
+A workflow definition follows a convention: `myworkflow_v3` will be understood as an implementation of `myworkflow` version `3`.
 
 When dispatching a task inside a worklow, both syntax with or without version can be used:
 
@@ -454,7 +454,7 @@ this.wait.until(datetime);
 
 Notes:
 
-- with above syntax, the return value is always `null`.
+- using the above syntax, the return value is always `null`.
 - `duration`: a duration in seconds (We can use `Duration` helper)
 - `datetime`: a timestamp (We can use `DateTime` helper)
 
@@ -516,12 +516,12 @@ If `this.wait` completes with an event, then `eventData` can be `undefined` but 
 
 We propose to deprecate the `onEvent` method, as this implementations has some drawbacks
 
-- it's quite verbose as it always begins with a test of event's name
-- as it does not allow event auto-discovery, it may generates useless decision if an event is not implemented
+- it's quite verbose as it always begins with a test of an event's name
+- as it does not allow event auto-discovery, it may generates a useless decision if an event is not implemented
 - it's not consistent with planned 3rd party API behavior
 
 At any moment, an instance can subscribe to an event to decide what to do when receiving an event.
-So at any moment inside the main function, user can subscribe to an event:
+So at any moment inside the main function, a user can subscribe to an event:
 
 ```javascript
 await this.onEvent(eventName, function(...data) {
@@ -529,7 +529,7 @@ await this.onEvent(eventName, function(...data) {
 });
 ```
 
-If user wants to listen event only with specific data:
+If a user wants to listen event only with specific data:
 
 ```javascript
 await this.onEvent([eventName, eventDataFilter], function(...data) {
@@ -644,16 +644,16 @@ As above, if user has connected Zenaton to more than 1 service, he should provid
 
 ## Reacting to events from a 3rd Party Service
 
-Events usually comes from 3rd party through webhooks. Zenaton handle those webhooks and transform
-them into events that user can use without worrying to manage a server to receive webhooks.
+Events usually comes from 3rd parties through webhooks. Zenaton handles those webhooks and transforms
+them into events that a user can use without worrying to manage a server to receive webhooks.
 
 ```javascript
 await this.onEvent("service:eventName", func);
 ```
 
-Note: if user has connected Zenaton to more than 1 service, he should provided a serviceId
+Note: if a user has connected Zenaton to more than 1 service, he should provided a serviceId
 
-If user wants to listen event only with specific data:
+If user wants to react to an event only if this event comes with specific data:
 
 ```javascript
 await this.onEvent([eventName, eventDataFilter], func);
@@ -663,7 +663,7 @@ Example: `this.onEvent(['slack:reaction_added', {timestamp: 126342563}]` will re
 
 ## Waiting Events from a 3rd Party Service
 
-Waiting an event for a 3rd party
+Waiting for an event from a 3rd party
 
 ```javascript
 await this.wait.event("service:eventName").forever();
