@@ -4,26 +4,26 @@ Our proposed syntax attempts to be very complete to avoid any more changes in th
 
 # Why this proposal?
 
-this syntax, by ensuring a complete separation between workflow and task implementation - that can now even been implemented in different programming languages:
+This syntax will encure a complete separation between workflow and task implementation - and can be implemented in different programming languages:
 
-- will be usable in the context of a microservice architecture (complete separation between workflow and task implementation and even programming languages)
-- will be usable in a serverless context (same reason than above)
-- will allow us to host ourselves decisions (later) and ultimately to propose much lighter agent (maybe no agent at all in some cases)
+- will be usable in the context of a microservices architecture (complete separation between workflow and task implementation and even programming languages)
+- will be usable in a serverless context (same reason as above)
+- will allow us to be able to host decisions (later) and ultimately to propose a much lighter agent (or perhaps no agent at all in some cases)
 - will fix a systemic current issue leading to false positive `ModifiedDeciderException`
 
-Also, it will fix some systemic defaults and
+Also, it will fix some systemic deficiencies and
 
-- will allow to use multiple client (allowing communication between different applications / environments)
-- will prevent you to misuse the library (for example by trying to wait in a task)
-- will allow you to handle large number of parallel processings
-- will increase efficiency of event management by reducing number of useless decisions.
+- will allow the use of multiple clients (allowing communications between different applications / environments)
+- will prevent misuse of the library (for example by trying to wait inside a task)
+- will allow the handling of a large number of parallel processings
+- will increase efficiency of event management by reducing the number of needless decisions.
 
-At last, we want to introduce new features and support new syntax aiming at reducing scafolding:
+At last, we want to introduce new features and support new syntax aimed at reducing scafolding:
 
 - sending an event or dispatching a workflow from another workflow
 - add helpers to access
 - terminate a workflow from anywhere
-- execute a sub-workflow like it was a task
+- execute a sub-workflow as if it was a task
 - and many more.
 
 ## Task or Workflow?
