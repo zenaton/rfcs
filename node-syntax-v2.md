@@ -148,7 +148,7 @@ Job (task or workflow) selection is done through `client.select`.
 - by tag: `client.select.job().withTag(...tags).`
 
 these filters can be chained:
-eg. `client.select.workflow('paymentProcess').withTag({email: 'foo@bar.com'})`
+eg. `client.select.workflow('paymentProcess').withTag('email:foo@bar.com')`
 
 Special methods can modify filters:
 
@@ -275,7 +275,7 @@ const { workflow } = require("zenaton");
 
 workflow(
   name,
-  async function(...input) {
+  function* (...input) {
     /* workflow definition */
   },
   options
@@ -286,7 +286,7 @@ workflow(
 
 Example : `{childPolicy: 'terminate'}`
 
-Note: `onEvent` is deprecated if favor of an explicit declaration inside the workflow processing, see below.
+Note: `onEvent` is deprecated in favor of an explicit declaration inside the workflow processing, see below.
 
 ## Workflow version
 
@@ -328,13 +328,13 @@ For examples:
 this.send("completed");
 ```
 
-will send an event `"completed"` to itself.
+will asynchronously send an event `"completed"` to itself.
 
 ```javascript
 await this.terminate();
 ```
 
-will immediatly terminate this workflow.
+will immediately terminate this workflow.
 
 ## Helpers
 
@@ -482,7 +482,14 @@ this.onEvent([eventName, eventDataFilter], function*(...data) {
 });
 ```
 
-## Parallel
+## Parallel 1
+The first way to run parralel tasks is 
+
+```javascript
+[output1, output2] = this.run.job([name1, ...data1], [name2, ...data2]);
+```
+
+## Parallel 2
 
 We are introducing a new way to manage parallel processing.
 
@@ -497,7 +504,7 @@ job = this.run.job(name, data);
 then
 
 ```javascript
-output = yield this.wait.completion(job).forever();
+[job, output] = yield this.wait.completion(job).forever();
 ```
 
 will go through only when `job` processing is successfully completed.
@@ -509,10 +516,10 @@ job1 = this.run.job(name1, data1);
 job2 = this.run.job(name2, data2);
 job3 = this.run.job(name3, data3);
 
-[output1, output2, output3] = yield this.wait.completion(job1, job2, job3).forever();
+[[job1, output1], [job2, output2], [job3, output3]] = yield this.wait.completion(job1, job2, job3).forever();
 ```
 
-Note: `[name, output] = this.wait.completion(job).minutes(5)` will wait for only 5 minutes. If `job` is not processed during that delay, output will be `null`.
+Note: `[job, output] = this.wait.completion(job).minutes(5)` will wait for only 5 minutes. If `job` is not processed during that delay, output will be `null`.
 
 ## Automatically processing HTTP calls as tasks
 
