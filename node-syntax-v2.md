@@ -63,7 +63,7 @@ Dispatching a Task or a Workflow is done through a client
 ### Dispatching for immediate processing
 
 ```javascript
-client.dispatch.job(name, ...input);
+client.run.job(name, ...input);
 ```
 
 `name` is a string and `data` is an array representing job's arguments (use equivalent to `new name(...data)`, ie. `[]` means no argument, `[1,2]`means 2 arguments `1` and `2`).
@@ -71,7 +71,7 @@ client.dispatch.job(name, ...input);
 ### Delayed Dispatching (duration)
 
 ```javascript
-client.dispatch.in(duration).job(name, ...input);
+client.run.in(duration).job(name, ...input);
 ```
 
 `duration` is an integer (seconds). We provide a `Duration` helper class, to allow syntax such as `Duration.hours(2).minutes(10)`.
@@ -79,7 +79,7 @@ client.dispatch.in(duration).job(name, ...input);
 ### Delayed Dispatching (date time)
 
 ```javascript
-client.dispatch.at(date).job(name, ...input);
+client.run.at(date).job(name, ...input);
 ```
 
 `date` is an DateTime. We provide a `DateTime` helper class, to allow syntax such as `DateTime.monday().at('8:00')`.
@@ -89,10 +89,10 @@ client.dispatch.at(date).job(name, ...input);
 When dispatching, we can assign one tag or more:
 
 ```javascript
-client.dispatch.tag(...tags).job(name, ...input);
+client.run.withTag(...tags).job(name, ...input);
 ```
 
-`tags` will be an array of one (`.tag(tag1)`) or more (`.tag(tag1, tag2, tag3)`) strings.
+`tags` will be an array of one (`.withTag(tag1)`) or more (`.withTag(tag1, tag2, tag3)`) strings.
 
 Users will use tags to target jobs in order to apply commands or request status.
 
@@ -108,75 +108,36 @@ When looking at similar services, we see that adding options to dispatching is u
 Theoritically, none of these options should be dependant on being a task or a workflow - (if you find a counter-example - please tell Gilles).
 
 ```javascript
-client.dispatch.options(...options). ...;
+client.run.withOptions(...options). ...;
 ```
 
 Example: `options = { dispatchToStartTimeout: 300 }`
 
 ### Dispatch's Output
 
-Any dispatch will synchronously output a `TaskContext`, `WorkflowContext` object
-with status `dispatched` - see below
+Any dispatch will synchronously output a `Job` object - see below
 
-### TaskContext
+### Job
 
 An updated version of TaskContext is obtained:
 
-- when dispatching a task
-- when retrieving a task (eg. `client.select.task().withId(id).find())
-- in `this.context`when processing a task
+- when dispatching a task or a workflow
+- when retrieving a task (eg. `client.select.task().withId(id).find()`
 
 Format:
 
 - `id` (provided by sdk) (our intent id)
-- `task` { name, version, input}
-  - `name` (canonical name) cf. versioning below
-  - `version` (default: 0) - integer representing version
-  - `input` (default: []) - array representing input
-- `dispatch` { in, at, tags, options }
-  - `in` (default: undefined)
-  - `at` (default: undefined)
-  - `tags` (default: [])
-  - `options` (default: [])
-- `createdAt` (initial client.dispatch timestamp)
-- `status`
-- `retryIndex` (optional) - current retry index when processing
-- `output` (optional)
-- `history` (optional)
 - `appId`
 - `appEnv`
-
-Possible status for task: `dispatched`, `queued`, `processing`, `failed`, `completed`, `skipped`
-
-### WorkflowContext
-
-An updated version of WorkflowContext is obtained:
-
-- when dispatching a workflow
-- when retrieving a workflow (eg. `client.select.workflow().withId(id).find())
-- in `this.context`when processing a workflow
-
-Format:
-
-- `id` (provided by sdk) (our intent id)
-- `workflow` { name, version, input}
-  - `name` (canonical name) cf. versioning below
-  - `version` (default: 0) - integer representing version
-  - `input` (default: []) - array representing input
-- `dispatch` { in, at, tags, options }
-  - `in` (default: undefined)
-  - `at` (default: undefined)
-  - `tags` (default: [])
-  - `options` (default: [])
-- `createdAt` (initial client.dispatch timestamp)
-- `status`
-- `output` (optional)
-- `properties` (current workflow properties)
-- `history` (optional)
-- `appId`
-- `appEnv`
-
-Possible status for workflow: `dispatched`, `running`, `paused`, `failed`, `completed`, `skipped`
+- `action` (`run` or `schedule`)
+- `type` (`task`or `workflow`)
+- `name`
+- `input`([data])
+- `tags` ([string])
+- `options`({} Object - key-value)
+- `each`
+- `at`
+- `in`
 
 ## Commands on Tasks or Workflows
 
@@ -196,8 +157,8 @@ Special methods can modify filters:
 
 Commands can be applied:
 
-- `.get()`: retrieve array of `TaskContext` or `WorkflowContext` (pagination to be defined as parameters) (history is not provided for batch request)
-- `.find()`: retrieve first `TaskContext` or `WorkflowContext`
+- `.get()`: retrieve array of `Job` (pagination to be defined as parameters) (history is not provided for batch request)
+- `.find()`: retrieve first `Job`
 
 On workflows only:
 
@@ -228,7 +189,7 @@ syntax such as `client.schedule(Each.day.at('8:00')).job(name, ...data);`.
 ```javascript
 client
   .schedule(cron)
-  .tag(...tags)
+  .withTag(...tags)
   .job(name, ...data);
 ```
 
@@ -238,8 +199,9 @@ Provided tags are applied to Schedule object (not future dispatched jobs).
 
 ```javascript
 client
-  .schedule(cron, ...options)
-  .tag(...tags)
+  .schedule(cron)
+  .withOptions()
+  .withTag(...tags)
   .job(name, ...data);
 ```
 
@@ -247,33 +209,7 @@ There are specific options related to scheduling, for example to indicate if we 
 
 ### Schedule's Output
 
-Any schedule will synchronously output a `ScheduleContext` object with `status` equals `running` (see below)
-
-### ScheduleContext
-
-An updated version of WorkflowContext is obtained:
-
-- when scheduling a task or a workflow
-- when retrieving a schedule (eg. `client.select.schedule.workflow().withId(id).find())`)
-
-Format:
-
-- `id` (provided by sdk) (our intent id)
-- `workflow` or `task` { name, version, input}
-  - `name` (canonical name) cf. versioning below
-  - `version` (default: 0) - integer representing version
-  - `input` (default: []) - array representing input
-- `schedule` { cron, tags, options}
-  - `cron`
-  - `tags` (default: [])
-  - `options` (default: [])
-- `createdAt` (initial client.schedule timestamp)
-- `status`
-- `history`(optional)
-- `appId`
-- `appEnv`
-
-Status for schedules: `running`, `paused`
+Any schedule will synchronously output a `Job` object
 
 ### Commands on Schedules
 
@@ -380,7 +316,7 @@ Inside a workflow `client` can be replaced by `this`. It means the command is ap
 ```javascript
 this.select
   .workflow("processPayment")
-  .withId("244DR3")
+  .withTag("244DR3")
   .send("completed");
 ```
 
@@ -420,7 +356,7 @@ Inside a workflow `client` can be replaced by `this`. It means the command is ap
 For example :
 
 ```javascript
-this.dispatch.workflow("processPayment", { cart });
+this.run.workflow("processPayment", { cart });
 ```
 
 will now be possible inside a workflow to dispatch another workflow.
@@ -436,7 +372,7 @@ Inside a workflow `client` can be replaced by `this`. It means the command is ap
 For "executing" jobs, ie. by waiting for the output to continue workflow execution, we do:
 
 ```javascript
-await this.execute.job(name, ...input);
+yield this.run.job(name, ...input);
 ```
 
 Notes:
@@ -450,19 +386,19 @@ Notes:
 Waiting forever
 
 ```javascript
-await this.wait.forever();
+yield this.wait.forever();
 ```
 
 Waiting for a duration
 
 ```javascript
-await this.wait.for(duration);
+yield this.wait.for(duration);
 ```
 
 Waiting for a datetime
 
 ```javascript
-await this.wait.until(datetime);
+yield this.wait.until(datetime);
 ```
 
 Notes:
@@ -485,31 +421,31 @@ Do nothing if not 1) neither 2)
 Waiting for an event without time limitation
 
 ```javascript
-await this.wait.event(eventName).forever();
+yield this.wait.event(eventName).forever();
 ```
 
 Waiting for an event, with a maximal duration
 
 ```javascript
-await this.wait.event(eventName).for(duration);
+yield this.wait.event(eventName).for(duration);
 ```
 
 Waiting for an event, up to a date time
 
 ```javascript
-await this.wait.event(eventName).until(date);
+yield this.wait.event(eventName).until(date);
 ```
 
 Waiting multiple events (AND)
 
 ```javascript
-await this.wait.event(event1Name, event2Name, ...).forever();
+yield this.wait.event(event1Name, event2Name, ...).forever();
 ```
 
 Waiting for an event with specific data
 
 ```javascript
-await this.wait.event([eventName, eventDataFilter]).forever();
+yield this.wait.event([eventName, eventDataFilter]).forever();
 ```
 
 Here `eventDataFilter` is an object containing criteria on `eventData`. For exemple `{ email: "gilles@zenaton.com"}` will wait only for events with `eventData.email === "gilles@zenaton.com"`.
@@ -517,13 +453,8 @@ Here `eventDataFilter` is an object containing criteria on `eventData`. For exem
 Output of the wait event:
 
 ```javascript
-eventData = await this.wait.event(eventName).for(duration);
-
-[event1data, event2data] = Wait.event(event1Name, event2Name).for(duration);
+[eventName, ...eventData] = yield this.wait.event(eventName).for(duration);
 ```
-
-If `this.wait` completes without an event, then `eventData` will be `null`.
-If `this.wait` completes with an event, then `eventData` can be `undefined` but never `null`.
 
 ### Reacting on Event
 
@@ -537,7 +468,7 @@ At any moment, an instance can subscribe to an event to decide what to do when r
 So at any moment inside the main function, a user can subscribe to an event:
 
 ```javascript
-this.onEvent(eventName, async function(...data) {
+this.onEvent(eventName, function*(...data) {
   // what I do after recieving this event.
 });
 ```
@@ -545,7 +476,7 @@ this.onEvent(eventName, async function(...data) {
 If a user wants to listen to an event with only specific data:
 
 ```javascript
-this.onEvent([eventName, eventDataFilter], async function(...data) {
+this.onEvent([eventName, eventDataFilter], function*(...data) {
   // what I do after recieving an event with name eventName, with right data
   // (eg. eventDataFilter {email: 'gilles@zenaton.com'} than eventData.email should be 'gilles@zenaton.com')
 });
@@ -560,13 +491,13 @@ For that, we are introducing a new way to wait for asynchronous jobs:
 If
 
 ```javascript
-job = this.dispatch.job(name, data);
+job = this.run.job(name, data);
 ```
 
 then
 
 ```javascript
-output = await this.wait.completion(job).forever();
+output = yield this.wait.completion(job).forever();
 ```
 
 will go through only when `job` processing is successfully completed.
@@ -574,35 +505,31 @@ will go through only when `job` processing is successfully completed.
 Waiting for a parallel completion becomes:
 
 ```javascript
-job1 = this.dispatch.job(name1, data1);
-job2 = this.dispatch.job(name2, data2);
-job3 = this.dispatch.job(name3, data3);
+job1 = this.run.job(name1, data1);
+job2 = this.run.job(name2, data2);
+job3 = this.run.job(name3, data3);
 
-[output1, output2, output3] = await this.wait.completion(job1, job2, job3).forever();
+[output1, output2, output3] = yield this.wait.completion(job1, job2, job3).forever();
 ```
 
-Note: `output = this.wait.completion(job).minutes(5)` will wait for only 5 minutes. If `job` is not processed during that delay, output will be `null`.
+Note: `[name, output] = this.wait.completion(job).minutes(5)` will wait for only 5 minutes. If `job` is not processed during that delay, output will be `null`.
 
 ## Automatically processing HTTP calls as tasks
 
-with `verb`being `get`, `post`, `put`, `delete`:
+with `verb` being `get`, `post`, `put`, `delete`:
 
 ```javascript
-await this.execute.verb(url, body, headers);
+const http = this.connector('httpt');
+
+yield http.verb(url, body, headers);
 ```
 
 or
 
-```javascript
-this.dispatch.verb(url, body, headers);
-```
-
 Examples:
 
 ```javascript
-await this.execute.post('https://slack.com/api/chat.postMessage', {...}, { Content-type: 'application/json', Authorization });
-
-this.dispatch.post('https://slack.com/api/chat.postMessage', {...}, { Content-type: 'application/json', Authorization });
+yield http.post('https://slack.com/api/chat.postMessage', {...}, { Content-type: 'application/json', Authorization });
 ```
 
 ## Processing APIs from a 3rd Party Service
@@ -612,48 +539,33 @@ For 3rd party APIs supported by Zenaton (supporting authentification and webhook
 ### If 3rd party provides a Rest API
 
 ```javascript
-await this.execute.verb("service:method", data);
+const service = this.connector("service", serviceId);
+
+yield service.verb(method, ...data);
 ```
 
-or
-
-```javascript
-this.dispatch.verb("service:method", data);
-```
 
 Examples:
 
 ```javascript
-await this.execute.post("slack:web.chat.postMessage", data);
-```
-
-Note: if a user has connected Zenaton to more than 1 service, they should provide a serviceId
-
-```javascript
-await this.execute.verb("serviceId@service:method", data);
+yield slack.post("web.chat.postMessage", data);
 ```
 
 ### If a 3rd party provides a full SDK
 
 ```javascript
-await this.execute.task("service:method", data);
-```
+const service = this.connector("service", serviceId);
 
-or
-
-```javascript
-this.dispatch.task("service:method", data);
+await service.task("method", data);
 ```
 
 Examples:
 
 ```javascript
-await this.execute.task("aws.s3:getObject", data);
-this.dispatch.task("aws.ses:SendRawEmail", data);
-await this.execute.task("slack:web.chat.postMessage", data);
+yield s3.task("getObject", ...data);
+ses.task("SendRawEmail", ...data);
+slack.task("web.chat.postMessage", ...data);
 ```
-
-As above, if a user has connected Zenaton to more than 1 service, they should provide a serviceId
 
 ## Reacting to events from a 3rd Party Service
 
@@ -661,7 +573,7 @@ Events usually come from 3rd parties through webhooks. Zenaton handles those web
 them into events that a user can use without worrying about managing a server to receive webhooks.
 
 ```javascript
-this.onEvent("service:eventName", async func);
+service.onEvent(eventName, func*);
 ```
 
 Note: if a user has connected Zenaton to more than 1 service, they should provide a serviceId
@@ -669,17 +581,17 @@ Note: if a user has connected Zenaton to more than 1 service, they should provid
 If user wants to react to an event only if this event comes with specific data:
 
 ```javascript
-this.onEvent([eventName, eventDataFilter], async func);
+service.onEvent([eventName, eventDataFilter], func*);
 ```
 
-Example: `this.onEvent(['slack:reaction_added', {timestamp: 126342563}]` will react only on event with this specific timestamp.
+Example: `slack.onEvent(['reaction_added', {timestamp: 126342563}]` will react only on event with this specific timestamp.
 
 ## Waiting Events from a 3rd Party Service
 
 Waiting for an event from a 3rd party
 
 ```javascript
-await this.wait.event("service:eventName").forever();
+await service.wait.event("eventName").forever();
 ```
 
 ## Example
@@ -690,13 +602,17 @@ Post a message and remove any reaction to it for 1 hour:
 const { workflow } = require("zenaton");
 
 module.exports = workflow("PostSlackMessageWithoutReaction", function() {
-    const response = await this.execute.post('slack:chat.postMessage', {
+    const slack = this.connector("slack", ...);
+    
+    const response = yield slack.post('chat.postMessage', {
             channel: 'C1234567890',
             text: 'try to react ont this!)'
     });
-    this.onEvent(['slack:reaction_added', {timestamp: response.message.ts}],  async () => {
-            await this.execute.post('slack:reactions.remove', {timestamp: data.timestamp});
-    })
-    await this.wait.for(3600);
+    
+    slack.onEvent(['reaction_added', {timestamp: response.message.ts}],  function*(data) {
+         yield slack.post('reactions.remove', {timestamp: data.timestamp});
+    });
+    
+    yield this.wait.for(3600);
 })
 ```
