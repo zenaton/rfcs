@@ -620,6 +620,7 @@ module.exports = workflow("PostSlackMessageWithoutReaction", function() {
          yield slack.post('reactions.remove', {timestamp: data.timestamp});
     });
     
-    yield this.wait.for(3600);
+    yield this.wait.forever();
 })
 ```
+Note: this workflow needs optimisation in Engine to avoid memory drift
