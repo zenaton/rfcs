@@ -608,13 +608,10 @@ Post a message and remove any reaction to it for 1 hour:
 ```javascript
 const { workflow } = require("zenaton");
 
-module.exports = workflow("PostSlackMessageWithoutReaction", function() {
+module.exports = workflow("PostSlackMessageWithoutReaction", function*(channel, text) {
     const slack = this.connector("slack", ...);
     
-    const response = yield slack.post('chat.postMessage', {
-            channel: 'C1234567890',
-            text: 'try to react ont this!)'
-    });
+    const response = yield slack.post('chat.postMessage', {channel, text});
     
     slack.onEvent(['reaction_added', {timestamp: response.message.ts}],  function*(data) {
          yield slack.post('reactions.remove', {timestamp: data.timestamp});
