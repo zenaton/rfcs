@@ -140,8 +140,11 @@ Format:
 - `each` (only for type `schedule`)
 - `at` (optional)
 - `in` (optional)
-- `properties`({data}) (optional - current value for workflows and tasks)
-- `output`(optional)
+
+Note: as `properties`, `status`, and `history` are values that are changing with time, the best approach may be to not include them as job's properties, but to provide specific methods to fetch them
+
+- `job.history()` (format to be defined)
+- `job.state()` {status, properties, output}
 
 
 ## Commands on Tasks or Workflows
