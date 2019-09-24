@@ -486,7 +486,7 @@ this.onEvent([eventName, eventDataFilter], function*(...data) {
 The first way to run parralel tasks is 
 
 ```javascript
-[output1, output2] = this.run.job([name1, ...data1], [name2, ...data2]);
+[output1, output2] = yield this.run.job([name1, ...data1], [name2, ...data2]);
 ```
 
 ## Parallel 2
@@ -526,7 +526,7 @@ Note: `[job, output] = this.wait.completion(job).minutes(5)` will wait for only 
 with `verb` being `get`, `post`, `put`, `delete`:
 
 ```javascript
-const http = this.connector('httpt');
+const http = this.connector('http');
 
 yield http.verb(url, body, headers);
 ```
@@ -563,7 +563,7 @@ yield slack.post("web.chat.postMessage", data);
 ```javascript
 const service = this.connector("service", serviceId);
 
-await service.task("method", data);
+await service.task("method", ...data);
 ```
 
 Examples:
