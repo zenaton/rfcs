@@ -354,9 +354,7 @@ Due to constraints applied to workflows, it's not possible to use function with 
 - `this.now()` will behave as a usable `Date.now()`
 - `this.random()`will behave as a usable `Math.random()`
 - `this.console.log` will behave as a usable `console.log` function
-- `this.console.dir` will behave as a usable `console.dir` function
 - `this.console.error` will behave as a usable `console.error` function
-- `this.console.table` will behave as a usable `console.table` function
 
 ## Dispatching
 
