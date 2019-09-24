@@ -119,10 +119,10 @@ Any dispatch will synchronously output a `Job` object - see below
 
 ### Job
 
-An updated version of TaskContext is obtained:
+An Job is obtained:
 
-- when dispatching a task or a workflow
-- when retrieving a task (eg. `client.select.task().withId(id).find()`
+- when dispatching a task or a workflow inside a workflow
+- when retrieving a task or a workflow (eg. `client.select.task().withId(id).find()`
 
 Format:
 
@@ -133,11 +133,14 @@ Format:
 - `type` (`task`or `workflow`)
 - `name`
 - `input`([data])
-- `tags` ([string])
-- `options`({} Object - key-value)
-- `each`
-- `at`
-- `in`
+- `tags` (optional - [string])
+- `options`(optional - {} Object - key-value)
+- `each` (only for type `schedule`)
+- `at` (optional)
+- `in` (optional)
+- `properties`({data}) (optional - current value for workflows and tasks)
+- `output`(optional)
+
 
 ## Commands on Tasks or Workflows
 
