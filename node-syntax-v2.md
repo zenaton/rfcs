@@ -228,8 +228,8 @@ Commands can be applied:
 - `.pause()`: pause scheduling
 - `.resume()`: resume scheduling
 - `.delete()`: remove scheduling
-- `.get()`: retrieve array of `ScheduleContext` (pagination to be defined)
-- `.find()`: retrieve first `ScheduleContext`
+- `.get()`: retrieve array of `Job` (pagination to be defined)
+- `.find()`: retrieve first `Job`
 
 # Task
 
@@ -259,8 +259,8 @@ Task definition follow a convention: `mytask_v3` will be understood as an implem
 
 When dispatching a task inside a worklow, both syntax with or without version can be used:
 
-- `this.dispatch.task('mytask', input)` will use last known version
-- `this.dispatch.task('mytask_v3', input)` will use version `3``
+- `this.run.task('mytask', ...input)` will use last known version
+- `this.run.task('mytask_v3', ...input)` will use version `3``
 
 Versioning tasks can be useful when its signature evolves.
 
@@ -281,8 +281,7 @@ workflow(
   options
 );
 ```
-
-`options`can be an object or a function of (...input) returning an object
+Using a generator. `options`can be an object or a function of (...input) returning an object
 
 Example : `{childPolicy: 'terminate'}`
 
@@ -294,8 +293,8 @@ A workflow definition follows a convention: `myworkflow_v3` will be understood a
 
 When dispatching a task inside a worklow, both syntax with or without version can be used:
 
-- `await this.dispatch.workflow('myworkflow', input)` will use last known version
-- `await this.dispatch.workflow('myworkflow_v3', input)` will use version `3``
+- `this.run.workflow('myworkflow', ...input)` will use last known version
+- `this.run.workflow('myworkflow_v3', ...input)` will use version `3`
 
 Same for selecting workflows. Versioning workflow is needed as soon as you have different version running concurrently.
 
@@ -335,6 +334,10 @@ await this.terminate();
 ```
 
 will immediately terminate this workflow.
+
+## Using Client inside a workflow
+
+a `Client` instance can be used instead of `this` inside a workflow, if user wants to use a different `AppId`/`AppEnv` that currently running (of course, he needs also to have a valid `ApiKey` associated).
 
 ## Helpers
 
