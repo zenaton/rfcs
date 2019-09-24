@@ -119,9 +119,11 @@ Any dispatch will synchronously output a `Job` object - see below
 
 ### Job
 
-An Job is obtained:
+An Job is obtained each time we need to return a reference to an object
 
-- when dispatching a task or a workflow inside a workflow
+- by `client.run.job(...)`
+- by `this.run.job(...)` (without `yield` inside a workflow)
+- by `service.verb(...)` or `service.job(...)` (without `yield` inside a workflow)
 - when retrieving a task or a workflow (eg. `client.select.task().withId(id).find()`
 
 Format:
