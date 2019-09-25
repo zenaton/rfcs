@@ -102,8 +102,8 @@ Note: the user no longer has the ability to provide an `id` ("custom id") - this
 
 When looking at similar services, we see that adding options to dispatching is unavoidable, eg.
 
-- `dispatchToStartTimeout`
-- `dispatchToCompleteTimeout`
+- `runToStartTimeout`
+- `runToCompleteTimeout`
 
 Theoritically, none of these options should be dependant on being a task or a workflow - (if you find a counter-example - please tell Gilles).
 
@@ -338,7 +338,7 @@ this.send("completed");
 will asynchronously send an event `"completed"` to itself.
 
 ```javascript
-await this.terminate();
+yield this.terminate();
 ```
 
 will immediately terminate this workflow.
@@ -607,7 +607,7 @@ Example: `slack.onEvent(['reaction_added', {timestamp: 126342563}]` will react o
 Waiting for an event from a 3rd party
 
 ```javascript
-await service.wait.event("eventName").forever();
+yield service.wait.event("eventName").forever();
 ```
 
 ## Example
